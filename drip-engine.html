@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Rattlesnake Drip Engine</title>
+  <link href='https://cdn.tailwindcss.com' rel='stylesheet'>
+  <link href='https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap' rel='stylesheet'>
+  <style>
+    &::before {
+      content: attr(data-anim-type) '';
+      animation: ${data-anim-name} ${data-duration}s ease-in-out forwards;
+      animation-delay: ${data-delay};
+    }
+    @keyframes ${data-anim-name} {
+      0% {
+        transform: scale(1);
+      }
+      100% {
+        transform: scale(${data-scale});
+      }
+    }
+  </style>
+</head>
+<body class='darkMode'>
+  <base href='/' target='_self'>
+  <link rel='icon' type='image/png' href='assets/favicon.png'>
+  <script src='https://cdn.tailwindcss.com'></script>
+  <!-- DripContext setup -->
+  <div id='drip-context'></div>
+</body>
+
+<!-- Navbar setup -->
+<nav id="navbar" class="fixed top-0 w-full z-50 bg-white dark:bg-gray-900 shadow-md">
+  <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+    <!-- Brand/logo -->
+    <a href="#hero" class="text-xl font-bold text-gray-800 dark:text-white">Rattlesnake Drip Engine</a>
+
+    <!-- Nav links -->
+    <ul class="hidden md:flex space-x-6 text-gray-700 dark:text-gray-300">
+      <li><a href="#home" class="hover:text-blue-500">Home</a></li>
+      <li><a href="#features" class="hover:text-blue-500">Features</a></li>
+      <li><a href="#pricing" class="hover:text-blue-500">Pricing</a></li>
+      <li><a href="#contact" class="hover:text-blue-500">Contact</a></li>
+    </ul>
+
+    <!-- Dark mode toggle -->
+    <button id="darkModeToggle" class="text-gray-600 dark:text-white hover:text-gray-800 dark:hover:text-gray-200">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16V5m6 4H6"/>
+      </svg>
+    </button>
+
+    <!-- Mobile hamburger menu -->
+    <button id="mobileMenuButton" class="md:hidden text-gray-600 dark:text-white hover:text-gray-800 dark:hover:text-gray-200">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <ul id="mobileMenu" class="hidden md:hidden flex-col items-center space-y-2 mt-2">
+    <li><a href="#home" class="text-gray-800 dark:text-white hover:text-blue-500">Home</a></li>
+    <li><a href="#features" class="text-gray-800 dark:text-white hover:text-blue-500">Features</a></li>
+    <li><a href="#pricing" class="text-gray-800 dark:text-white hover:text-blue-500">Pricing</a></li>
+    <li><a href="#contact" class="text-gray-800 dark:text-white hover:text-blue-500">Contact</a></li>
+  </ul>
+</nav>
+
+<script>
+  // Toggle dark mode
+  document.getElementById('darkModeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('darkMode');
+    localStorage.setItem('darkMode', !document.body.classList.contains('darkMode'));
+  });
+
+  // Check local storage for dark mode preference
+  if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('darkMode');
+  }
+
+  // Mobile menu toggle
+  document.getElementById('mobileMenuButton').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('hidden');
+  });
+</script>
+
+<section id="hero" class="fade-in relative bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-24 px-10 dark:bg-gray-900">
+  <div class="container mx-auto text-center">
+    <h1 class="text-5xl font-bold mb-6">Unlock the Future of AI-Powered Development</h1>
+    <p class="text-xl mb-12 max-w-3xl mx-auto">Experience unparalleled efficiency and innovation with Rattlesnake Drip Engine, the ultimate tool for modern software development.</p>
+    <div class="flex justify-center space-x-4">
+      <a href="#features" class="bg-white text-indigo-600 hover:bg-indigo-700 hover:text-white px-6 py-3 rounded-lg transition duration-300 dark:bg-gray-800 dark:hover:bg-gray-700">Get Started</a>
+      <a href="#contact" class="border border-white text-white hover:border-indigo-600 hover:text-indigo-600 px-6 py-3 rounded-lg transition duration-300">Contact Us</a>
+    </div>
+  </div>
+  <!-- Decorative blobs -->
+  <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+  </div>
+</section>
+
+<style>
+  .blob {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    filter: blur(10px);
+  }
+  .blob1 {
+    top: -50px;
+    left: -30px;
+    width: 80px;
+    height: 80px;
+    animation: blob1 15s infinite alternate;
+  }
+  .blob2 {
+    bottom: -50px;
+    right: -30px;
+    width: 60px;
+    height: 60px;
+    animation: blob2 10s infinite alternate;
+  }
+  @keyframes blob1 {
+    from {
+      transform: scale(0.8);
+    }
+    to {
+      transform: scale(1.2);
+    }
+  }
+  @keyframes blob2 {
+    from {
+      transform: scale(0.9);
+    }
+    to {
+      transform: scale(1.3);
+    }
+  }
+</style>
+
+<div id="content" class="py-16 container mx-auto">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Accelerated Workflows -->
+    <div class="bg-blue-50 dark:bg-gray-800 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <img src="assets/icon-slim-system.png" alt="Slim System Icon" class="w-12 h-12 mb-4">
+      <h3 class="text-xl font-bold text-blue-800 dark:text-white">Slim System Prompt</h3>
+      <p class="text-gray-600 dark:text-gray-300">Optimize your prompts with 1.5K tokens for local models or scale up to 10K tokens with our universal system, providing the perfect balance between performance and capability.</p>
+    </div>
+
+    <!-- Enterprise Security -->
+    <div class="bg-blue-50 dark:bg-gray-800 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <img src="assets/icon-drip-engine.png" alt="Drip Engine Icon" class="w-12 h-12 mb-4">
+      <h3 class="text-xl font-bold text-blue-800 dark:text-white">Universal Drip Engine</h3>
+      <p class="text-gray-600 dark:text-gray-300">Generate micro-drips for HTML, Python, JS, and CSS with parallel group execution. Our flow diagram visualizes the seamless integration of your codebase.</p>
+    </div>
+
+    <!-- Effortless Connectivity -->
+    <div class="bg-blue-50 dark:bg-gray-800 rounded-lg p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <img src="assets/icon-context-surgeon.png" alt="Context Surgeon Icon" class="w-12 h-12 mb-4">
+      <h3 class="text-xl font-bold text-blue-800 dark:text-white">Context Surgeon Lite</h3>
+      <p class="text-gray-600 dark:text-gray-300">Extract and match context with AST-based parsing for Python, regex for JS, and CSS rule extraction. Ensure your code is perfectly synchronized across languages.</p>
+    </div>
+  </div>
+</div>
+
+<section id="cta" class="fade-in bg-gradient-to-r from-blue-500 to-blue-700 text-white py-16">
+  <div class="container mx-auto flex justify-center items-center flex-col space-y-4">
+    <h2 class="text-3xl font-bold">Ready to Transform Your Project?</h2>
+    <p class="text-xl">Get started with Rattlesnake Drip Engine today and revolutionize your development workflow.</p>
+    <a href="#contact" class="bg-white text-blue-700 hover:bg-blue-100 px-8 py-3 rounded-full transition duration-300 font-bold">Contact Us</a>
+  </div>
+</section>
+
+<footer id="footer" class="bg-blue-900 text-white py-8">
+  <div class="container mx-auto flex justify-between items-center">
+    <div>
+      <h3 class="text-xl font-bold mb-2">Rattlesnake Drip Engine</h3>
+      <p class="max-w-sm">A cutting-edge system for code generation and optimization, designed to streamline your development workflow.</p>
+    </div>
+    
+    <div class="flex space-x-4">
+      <a href="mailto:info@rattlesnake.com" class="hover:text-blue-500">info@rattlesnake.com</a>
+      <a href="tel:+1 (555) 932-4178" class="hover:text-blue-500">+1 (555) 932-4178</a>
+    </div>
+    <div class="flex space-x-4">
+      <a href="https://twitter.com/rattlesnake" target="_blank" rel="noopener noreferrer">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.954 4.57a10 10 0 01-2.825.775A4.958 4.958 0 0020.16 7c0 2.3-.8 3.4-1.977 4.22.59-.074.976-.266 1.303-.568a4.107 4.107 0 001.333-3.16A4.068 4.068 0 0020 6c0-1.317-.34-2.5-.986-3.464-.647-.926-1.672-1.362-2.83 1.42a13.945 13.945 0 007.483 4.565z"></path></svg>
+      </a>
+      <a href="https://github.com/rattlesnake" target="_blank" rel="noopener noreferrer">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 24C5.373 24 0 18.627 0 12S5.373 0 12 0s12 5.373 12 12-5.373 12-12 12zm1-17h-.999v2h2v-2zm0 3h-.999v6h2V8z"></path></svg>
+      </a>
+      <a href="https://linkedin.com/company/rattlesnake" target="_blank" rel="noopener noreferrer">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.954 4.57a10 10 0 01-2.825.775A4.958 4.958 0 0020.16 7c0 2.3-.8 3.4-1.977 4.22.59-.074.976-.266 1.303-.568a4.107 4.107 0 001.333-3.16A4.068 4.068 0 0020 6c0-1.317-.34-2.5-.986-3.464-.647-.926-1.672-1.362-2.83 1.42a13.945 13.945 0 007.483 4.565z"></path></svg>
+      </a>
+    </div>
+  </div>
+  <div class="text-center mt-4">
+    <p>&copy; 2025 Rattlesnake Drip Engine. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  function toggleDarkMode() {
+    const currentTheme = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', currentTheme ? 'dark' : 'light');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  });
+
+  document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
+</script>
+
+<script>
+  // Mobile menu toggle
+  document.getElementById('mobileMenuButton').addEventListener('click', () => {
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenu.classList.toggle('hidden');
+  });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelector(this.getAttribute('href')).scrollIntoView({
+        behavior: 'smooth'
+      });
+    });
+  });
+
+  // Scroll-triggered fade-in animations
+  const fadeInElements = document.querySelectorAll('.fade-in');
+  const observer = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('opacity-100');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  fadeInElements.forEach(element => {
+    observer.observe(element);
+  });
+
+  // Navbar background change on scroll
+  window.addEventListener('scroll', () => {
+    const navbar = document.getElementById('navbar');
+    if (window.scrollY > 10) {
+      navbar.classList.add('bg-blue-500');
+    } else {
+      navbar.classList.remove('bg-blue-500');
+    }
+  });
+
+  // Form validation and submit handler
+  document.querySelector('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const emailInput = this.querySelector('[name="email"]');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value)) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+    // Simulate form submission
+    alert('Thank you for your interest!');
+    this.reset();
+  });
+</script>
+
+</body>
+</html>

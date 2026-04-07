@@ -1,0 +1,21 @@
+__pycache__/
+archive/
+node_modules/
+.next/
+*.egg-info/
+dist/
+.port_sessions/
+
+# Secrets — auto-added by Rattlesnake security
+.env
+.env.development
+.env.local
+.env.production
+.env.staging
+.env.test
+*.jks
+*.key
+*.keystore
+*.p12
+*.pem
+*.pfx

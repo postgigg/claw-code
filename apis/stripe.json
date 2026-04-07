@@ -1,0 +1,65 @@
+{
+  "name": "stripe",
+  "version": "17.x",
+  "sdk": "stripe (Node.js)",
+  "setup": {
+    "install": "npm install stripe @stripe/stripe-js",
+    "server_init": "import Stripe from 'stripe';\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-12-18.acacia' });",
+    "client_init": "import { loadStripe } from '@stripe/stripe-js';\nconst stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);"
+  },
+  "patterns": {
+    "create_checkout_session": {
+      "description": "Create a Stripe Checkout session for one-time or subscription payments",
+      "code": "const session = await stripe.checkout.sessions.create({\n  customer_email: userEmail,\n  line_items: [{ price: priceId, quantity: 1 }],\n  mode: 'subscription', // or 'payment' for one-time\n  success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,\n  cancel_url: `${appUrl}/cancel`,\n  metadata: { userId: userId },\n});",
+      "returns": "Session object with .url for redirect"
+    },
+    "create_payment_intent": {
+      "description": "Create a PaymentIntent for custom payment flows",
+      "code": "const paymentIntent = await stripe.paymentIntents.create({\n  amount: 2000, // amount in cents\n  currency: 'usd',\n  metadata: { userId: userId },\n});",
+      "returns": "PaymentIntent with .client_secret for frontend"
+    },
+    "webhook_handler": {
+      "description": "Verify and handle Stripe webhooks",
+      "code": "const sig = request.headers.get('stripe-signature')!;\nconst event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);\n\nswitch (event.type) {\n  case 'checkout.session.completed':\n    const session = event.data.object as Stripe.Checkout.Session;\n    break;\n  case 'customer.subscription.updated':\n    const subscription = event.data.object as Stripe.Subscription;\n    break;\n  case 'customer.subscription.deleted':\n    const subscription = event.data.object as Stripe.Subscription;\n    break;\n}",
+      "important": "Always verify webhook signatures. Never trust unverified webhook data."
+    },
+    "create_customer": {
+      "description": "Create a Stripe customer",
+      "code": "const customer = await stripe.customers.create({\n  email: userEmail,\n  metadata: { userId: userId },\n});",
+      "returns": "Customer object with .id"
+    },
+    "create_product_and_price": {
+      "description": "Create a product with a recurring price",
+      "code": "const product = await stripe.products.create({\n  name: 'Pro Plan',\n  description: 'Full access to all features',\n});\n\nconst price = await stripe.prices.create({\n  product: product.id,\n  unit_amount: 2000,\n  currency: 'usd',\n  recurring: { interval: 'month' },\n});",
+      "returns": "Price object with .id to use in checkout"
+    },
+    "retrieve_subscription": {
+      "description": "Get subscription details",
+      "code": "const subscription = await stripe.subscriptions.retrieve(subscriptionId);",
+      "returns": "Subscription object with .status, .current_period_end"
+    },
+    "cancel_subscription": {
+      "description": "Cancel a subscription at period end",
+      "code": "const subscription = await stripe.subscriptions.update(subscriptionId, {\n  cancel_at_period_end: true,\n});",
+      "returns": "Updated subscription"
+    },
+    "create_portal_session": {
+      "description": "Create a customer portal session for self-service",
+      "code": "const portalSession = await stripe.billingPortal.sessions.create({\n  customer: customerId,\n  return_url: `${appUrl}/dashboard`,\n});",
+      "returns": "Portal session with .url"
+    }
+  },
+  "common_mistakes": [
+    "Using stripe.charges.create() instead of checkout.sessions.create() -- Charges API is legacy",
+    "Forgetting to verify webhook signatures",
+    "Using test keys in production",
+    "Not handling subscription.deleted events (users keep access after cancellation)",
+    "Amounts are in cents, not dollars (2000 = $20.00)",
+    "Not setting apiVersion in Stripe constructor"
+  ],
+  "env_vars": [
+    "STRIPE_SECRET_KEY",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "STRIPE_WEBHOOK_SECRET"
+  ]
+}

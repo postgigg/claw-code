@@ -1,0 +1,33 @@
+{
+  "name": "resend",
+  "version": "4.x",
+  "sdk": "resend (Node.js)",
+  "setup": {
+    "install": "npm install resend",
+    "init": "import { Resend } from 'resend';\nconst resend = new Resend(process.env.RESEND_API_KEY);"
+  },
+  "patterns": {
+    "send_email": {
+      "description": "Send a basic email",
+      "code": "const { data, error } = await resend.emails.send({\n  from: 'App Name <noreply@yourdomain.com>',\n  to: [recipientEmail],\n  subject: 'Subject line',\n  html: '<h1>Hello</h1><p>Email body here</p>',\n});",
+      "returns": "{ data: { id }, error }"
+    },
+    "send_with_react": {
+      "description": "Send an email using a React component as template",
+      "code": "import { WelcomeEmail } from '@/emails/welcome';\n\nconst { data, error } = await resend.emails.send({\n  from: 'App Name <noreply@yourdomain.com>',\n  to: [recipientEmail],\n  subject: 'Welcome!',\n  react: WelcomeEmail({ name: userName }),\n});",
+      "returns": "{ data: { id }, error }"
+    },
+    "api_route": {
+      "description": "Next.js API route for sending emails",
+      "code": "// src/app/api/send/route.ts\nimport { Resend } from 'resend';\nimport { NextResponse } from 'next/server';\n\nconst resend = new Resend(process.env.RESEND_API_KEY);\n\nexport async function POST(request: Request) {\n  const { to, subject, html } = await request.json();\n  const { data, error } = await resend.emails.send({\n    from: 'App <noreply@yourdomain.com>',\n    to: [to],\n    subject,\n    html,\n  });\n  if (error) return NextResponse.json({ error }, { status: 400 });\n  return NextResponse.json(data);\n}"
+    }
+  },
+  "common_mistakes": [
+    "Using 'onboarding@resend.dev' in production -- only works for testing to your own email",
+    "Not verifying your domain in Resend dashboard before sending",
+    "Sending from a gmail/hotmail address -- must use your own domain"
+  ],
+  "env_vars": [
+    "RESEND_API_KEY"
+  ]
+}

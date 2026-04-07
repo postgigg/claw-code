@@ -1,0 +1,15 @@
+## Security — ZERO COMPROMISE (condensed)
+- Hash passwords with bcrypt/argon2 — NEVER plaintext
+- Validate JWTs server-side with getUser() — NEVER trust client
+- Parameterized queries only — NEVER string-interpolate SQL
+- Sanitize HTML output (DOMPurify) — prevent XSS
+- All secrets in .env — NEVER hardcoded. Create .env.example
+- Server secrets: no NEXT_PUBLIC_/VITE_ prefix
+- httpOnly + secure + sameSite cookies for tokens
+- CORS: whitelist origins — NEVER origin: '*'
+- Security headers: CSP, X-Content-Type-Options, X-Frame-Options
+- Rate limit auth endpoints. CSRF on state changes.
+- Validate all input server-side. maxLength on text inputs.
+- Verify webhook signatures. Validate file uploads.
+- Enable RLS on Supabase tables. Filter by user_id.
+- Pin dependency versions. Run npm/pip audit.

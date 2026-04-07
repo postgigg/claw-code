@@ -1,0 +1,93 @@
+{
+  "sections": {
+    "core_identity": {
+      "file": "core_identity.md",
+      "priority": 0,
+      "modes": ["all"],
+      "max_tokens": 600,
+      "description": "Rattlesnake persona, environment, mindset, forbidden rules"
+    },
+    "workflow_rules": {
+      "file": "workflow_rules.md",
+      "priority": 10,
+      "modes": ["conversation", "scaffold"],
+      "max_tokens": 1500,
+      "description": "SEARCH→READ→EDIT file workflow, ask_user, templates, verification, tools"
+    },
+    "scaffold_rules": {
+      "file": "scaffold_rules.md",
+      "priority": 15,
+      "modes": ["scaffold"],
+      "max_tokens": 500,
+      "description": "Scaffold-specific execution rules and quality gates"
+    },
+    "discovery_flow": {
+      "file": "discovery_flow.md",
+      "condensed": "discovery_flow_condensed",
+      "priority": 20,
+      "modes": ["conversation"],
+      "keywords": ["build", "create", "project", "app", "make", "scaffold"],
+      "max_tokens": 900,
+      "description": "PM brain discovery questions for new projects"
+    },
+    "memory_plan": {
+      "file": "memory_plan.md",
+      "priority": 25,
+      "modes": ["conversation"],
+      "max_tokens": 400,
+      "description": "Memory system + plan mode rules"
+    },
+    "security_rules": {
+      "file": "security_rules.md",
+      "condensed": "security_rules_condensed",
+      "priority": 30,
+      "modes": ["conversation"],
+      "max_tokens": 1500,
+      "description": "Full security mandate — ZERO COMPROMISE"
+    },
+    "frontend_rules": {
+      "file": "frontend_rules.md",
+      "priority": 35,
+      "modes": ["conversation", "scaffold"],
+      "keywords": ["react", "next", "vue", "svelte", "html", "css", "tailwind", "frontend", "ui", "component", "nuxt", "angular", "remix"],
+      "max_tokens": 1000,
+      "description": "Frontend quality rules and UI standards"
+    },
+    "backend_rules": {
+      "file": "backend_rules.md",
+      "priority": 36,
+      "modes": ["conversation", "scaffold"],
+      "keywords": ["api", "server", "database", "backend", "express", "fastapi", "django", "flask", "hono", "koa"],
+      "max_tokens": 400,
+      "description": "Backend quality rules"
+    },
+    "design_quality": {
+      "file": "design_quality.md",
+      "priority": 40,
+      "modes": ["conversation", "scaffold"],
+      "max_tokens": 700,
+      "description": "ZERO SLOP design rules — banned patterns and required quality"
+    },
+    "production_quality": {
+      "file": "production_quality.md",
+      "priority": 45,
+      "modes": ["conversation", "scaffold"],
+      "max_tokens": 1600,
+      "description": "Universal quality, security basics, performance, production standards"
+    },
+    "communication": {
+      "file": "communication.md",
+      "priority": 50,
+      "modes": ["conversation"],
+      "max_tokens": 200,
+      "description": "Communication style and formatting"
+    },
+    "inner_monologue": {
+      "file": "inner_monologue.md",
+      "priority": 90,
+      "modes": ["conversation"],
+      "max_tokens": 250,
+      "description": "Thinking directive for inner monologue"
+    }
+  }
+}

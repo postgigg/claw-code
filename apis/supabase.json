@@ -1,0 +1,100 @@
+{
+  "name": "supabase",
+  "version": "2.x",
+  "sdk": "@supabase/supabase-js + @supabase/ssr",
+  "setup": {
+    "install": "npm install @supabase/supabase-js @supabase/ssr",
+    "browser_client": "import { createBrowserClient } from '@supabase/ssr';\n\nexport function createClient() {\n  return createBrowserClient(\n    process.env.NEXT_PUBLIC_SUPABASE_URL!,\n    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!\n  );\n}",
+    "server_client": "import { createServerClient } from '@supabase/ssr';\nimport { cookies } from 'next/headers';\n\nexport async function createClient() {\n  const cookieStore = await cookies();\n  return createServerClient(\n    process.env.NEXT_PUBLIC_SUPABASE_URL!,\n    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,\n    {\n      cookies: {\n        getAll() { return cookieStore.getAll(); },\n        setAll(cookiesToSet) {\n          try {\n            cookiesToSet.forEach(({ name, value, options }) =>\n              cookieStore.set(name, value, options)\n            );\n          } catch {}\n        },\n      },\n    }\n  );\n}"
+  },
+  "patterns": {
+    "auth_signup": {
+      "description": "Sign up a new user with email/password",
+      "code": "const { data, error } = await supabase.auth.signUp({\n  email,\n  password,\n  options: {\n    emailRedirectTo: `${origin}/auth/callback`,\n  },\n});",
+      "returns": "{ data: { user, session }, error }"
+    },
+    "auth_signin": {
+      "description": "Sign in with email/password",
+      "code": "const { data, error } = await supabase.auth.signInWithPassword({\n  email,\n  password,\n});",
+      "returns": "{ data: { user, session }, error }"
+    },
+    "auth_signout": {
+      "description": "Sign out the current user",
+      "code": "const { error } = await supabase.auth.signOut();",
+      "returns": "{ error }"
+    },
+    "auth_get_user": {
+      "description": "Get the current authenticated user (server-side)",
+      "code": "const { data: { user } } = await supabase.auth.getUser();",
+      "returns": "{ data: { user } } -- user is null if not authenticated",
+      "important": "Always use getUser() on server, not getSession(). getUser() validates the JWT with Supabase."
+    },
+    "auth_oauth": {
+      "description": "Sign in with OAuth provider (Google, GitHub, etc.)",
+      "code": "const { data, error } = await supabase.auth.signInWithOAuth({\n  provider: 'google',\n  options: {\n    redirectTo: `${origin}/auth/callback`,\n  },\n});",
+      "returns": "{ data: { url }, error } -- redirect user to data.url"
+    },
+    "auth_callback_route": {
+      "description": "Handle OAuth/magic link callback (Next.js App Router)",
+      "code": "// src/app/auth/callback/route.ts\nimport { createClient } from '@/lib/supabase/server';\nimport { NextResponse } from 'next/server';\n\nexport async function GET(request: Request) {\n  const { searchParams, origin } = new URL(request.url);\n  const code = searchParams.get('code');\n  if (code) {\n    const supabase = await createClient();\n    const { error } = await supabase.auth.exchangeCodeForSession(code);\n    if (!error) return NextResponse.redirect(`${origin}/dashboard`);\n  }\n  return NextResponse.redirect(`${origin}/login?message=Could not authenticate`);\n}"
+    },
+    "select": {
+      "description": "Query rows from a table",
+      "code": "const { data, error } = await supabase\n  .from('table_name')\n  .select('*')\n  .eq('column', value)\n  .order('created_at', { ascending: false })\n  .limit(10);",
+      "returns": "{ data: Row[], error }"
+    },
+    "insert": {
+      "description": "Insert rows into a table",
+      "code": "const { data, error } = await supabase\n  .from('table_name')\n  .insert({ column1: value1, column2: value2 })\n  .select();",
+      "returns": "{ data: Row[], error }"
+    },
+    "update": {
+      "description": "Update rows in a table",
+      "code": "const { data, error } = await supabase\n  .from('table_name')\n  .update({ column: newValue })\n  .eq('id', rowId)\n  .select();",
+      "returns": "{ data: Row[], error }"
+    },
+    "delete": {
+      "description": "Delete rows from a table",
+      "code": "const { error } = await supabase\n  .from('table_name')\n  .delete()\n  .eq('id', rowId);",
+      "returns": "{ error }"
+    },
+    "rls_policy": {
+      "description": "Row Level Security policy pattern",
+      "code": "-- Enable RLS\nalter table public.my_table enable row level security;\n\n-- Users can only read their own rows\ncreate policy \"Users read own data\"\n  on public.my_table for select\n  using (auth.uid() = user_id);\n\n-- Users can insert their own rows\ncreate policy \"Users insert own data\"\n  on public.my_table for insert\n  with check (auth.uid() = user_id);\n\n-- Users can update their own rows\ncreate policy \"Users update own data\"\n  on public.my_table for update\n  using (auth.uid() = user_id);\n\n-- Users can delete their own rows\ncreate policy \"Users delete own data\"\n  on public.my_table for delete\n  using (auth.uid() = user_id);",
+      "important": "Always enable RLS on tables. Without it, any authenticated user can read all data."
+    },
+    "realtime_subscribe": {
+      "description": "Subscribe to real-time changes on a table",
+      "code": "const channel = supabase\n  .channel('changes')\n  .on('postgres_changes',\n    { event: '*', schema: 'public', table: 'my_table' },\n    (payload) => {\n      console.log('Change received:', payload);\n    }\n  )\n  .subscribe();",
+      "returns": "RealtimeChannel -- call channel.unsubscribe() to stop"
+    },
+    "storage_upload": {
+      "description": "Upload a file to Supabase Storage",
+      "code": "const { data, error } = await supabase.storage\n  .from('bucket-name')\n  .upload(`${userId}/${fileName}`, file, {\n    contentType: file.type,\n    upsert: true,\n  });",
+      "returns": "{ data: { path }, error }"
+    },
+    "storage_get_url": {
+      "description": "Get a public URL for a stored file",
+      "code": "const { data } = supabase.storage\n  .from('bucket-name')\n  .getPublicUrl('path/to/file');",
+      "returns": "{ data: { publicUrl } }"
+    },
+    "middleware_session_refresh": {
+      "description": "Next.js middleware for refreshing Supabase auth sessions",
+      "code": "// src/middleware.ts\nimport { updateSession } from '@/lib/supabase/middleware';\nimport { type NextRequest } from 'next/server';\n\nexport async function middleware(request: NextRequest) {\n  return await updateSession(request);\n}\n\nexport const config = {\n  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],\n};"
+    }
+  },
+  "common_mistakes": [
+    "Using createClient from @supabase/supabase-js directly in Next.js -- use @supabase/ssr instead",
+    "Using getSession() on server components instead of getUser() -- getSession doesn't validate the JWT",
+    "Forgetting to enable RLS on tables -- data is publicly accessible without it",
+    "Not setting up middleware for session refresh -- sessions expire silently",
+    "Using supabase-js v1 patterns (supabase.auth.session()) with v2 SDK",
+    "Not handling the auth callback route for OAuth/magic links",
+    "Using service_role key on the client side -- only use anon key on client"
+  ],
+  "env_vars": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY"
+  ]
+}

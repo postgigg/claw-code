@@ -1,0 +1,15 @@
+{
+  "name": "nextjs-supabase",
+  "description": "Next.js 14 App Router + Supabase Auth + Stripe Payments + Tailwind CSS",
+  "stack": ["Next.js 14", "Supabase", "Stripe", "Tailwind CSS", "TypeScript"],
+  "features": ["Authentication", "Database", "Payments", "Email", "API Routes"],
+  "variables": {
+    "PROJECT_NAME": "my-app",
+    "SUPABASE_URL": "https://your-project.supabase.co",
+    "SUPABASE_ANON_KEY": "your-anon-key",
+    "STRIPE_SECRET_KEY": "sk_test_...",
+    "STRIPE_PUBLISHABLE_KEY": "pk_test_...",
+    "STRIPE_WEBHOOK_SECRET": "whsec_...",
+    "NEXT_PUBLIC_APP_URL": "http://localhost:3000"
+  }
+}

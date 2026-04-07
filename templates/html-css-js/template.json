@@ -1,0 +1,11 @@
+{
+  "name": "html-css-js",
+  "description": "Vanilla HTML + Tailwind CSS + JavaScript — static website starter",
+  "stack": ["HTML", "Tailwind CSS", "JavaScript"],
+  "features": ["Responsive layout", "Dark mode", "Navigation", "Hero section", "Contact form"],
+  "variables": {
+    "PROJECT_NAME": "my-site",
+    "SITE_TITLE": "My Website",
+    "SITE_DESCRIPTION": "A modern website"
+  }
+}

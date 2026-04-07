@@ -1,0 +1,34 @@
+{
+  "apis": {
+    "stripe": {
+      "file": "stripe.json",
+      "keywords": ["payment", "checkout", "subscription", "billing", "price", "invoice", "customer"],
+      "description": "Stripe payment processing - checkout, subscriptions, webhooks"
+    },
+    "supabase": {
+      "file": "supabase.json",
+      "keywords": ["database", "auth", "authentication", "realtime", "storage", "rls", "row level security", "postgres"],
+      "description": "Supabase - database, auth, storage, realtime"
+    },
+    "resend": {
+      "file": "resend.json",
+      "keywords": ["email", "send email", "notification", "transactional email"],
+      "description": "Resend email API - transactional emails"
+    },
+    "design": {
+      "file": "design.json",
+      "keywords": ["ui", "design", "css", "layout", "color", "font", "style", "website", "page", "landing", "dashboard", "responsive", "dark mode", "animation", "component"],
+      "description": "Modern UI/UX design system — anti-slop patterns and components"
+    },
+    "database": {
+      "file": "database.json",
+      "keywords": ["database", "schema", "sql", "table", "migration", "prisma", "drizzle", "sqlite", "postgresql", "postgres", "mysql", "orm", "model", "query", "crud"],
+      "description": "Database-agnostic schema patterns — PostgreSQL, SQLite, Prisma, Drizzle, Supabase SQL"
+    },
+    "security": {
+      "file": "security.json",
+      "keywords": ["security", "auth", "cors", "csrf", "xss", "injection", "rate limit", "headers", "middleware", "validation", "sanitize"],
+      "description": "Security enforcement system — headers, middleware, validation, scan patterns"
+    }
+  }
+}

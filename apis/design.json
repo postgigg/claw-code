@@ -1,0 +1,2465 @@
+{
+  "_meta": {
+    "name": "Rattlesnake Universal Design & Conversion System",
+    "version": "3.0.0",
+    "description": "COMPLETE system: UI component recipes, page layouts, color palettes, typography, anti-slop rules, psychological conversion frameworks, animation patterns, responsive breakpoints, CTA formulas, objection handling, and post-build scan patterns. This single file contains everything a model needs to build a production-grade, modern, high-converting app. Models ASSEMBLE from these patterns. They do not design. They do not write conversion copy from scratch. They follow the blueprints.",
+    "usage": "Injected into model context via _build_design_context(). The BUILD SPEC generator selects relevant subsets based on page types detected."
+  },
+  "philosophy": [
+    "Models don't design. They assemble. Every visual decision is pre-made.",
+    "If the model has to choose a color, spacing, or shadow \u2014 the system failed.",
+    "Modern means: restraint, hierarchy, density where useful, air where needed.",
+    "The best SaaS UIs (Linear, Vercel, Stripe, Raycast) share traits: dark-first, tight typography, minimal borders, zero decorative shadows, surgical use of color.",
+    "A $500K/yr engineer builds: loading states for every async operation, error boundaries around every data fetch, keyboard navigation on every interactive element, responsive layouts that don't break, and transitions that feel intentional.",
+    "Every page has exactly ONE primary action. If there are two equal-weight CTAs, the design is wrong.",
+    "Data density is a feature, not a bug. Show more information in less space. Users prefer scanning to clicking.",
+    "Whitespace is structural, not decorative. Use it to separate groups, not to fill emptiness."
+  ],
+  "anti_slop_rules": [
+    "NEVER use shadow-lg, shadow-xl, or shadow-2xl on cards or containers. Use shadow-sm or border ONLY. Pick one, not both.",
+    "NEVER use rounded-2xl or rounded-3xl. Maximum is rounded-xl for modals. Use rounded-lg for cards, rounded-md for buttons/inputs.",
+    "NEVER use gradient backgrounds on containers or cards. Solid colors only.",
+    "NEVER use raw Tailwind color classes (gray-100, blue-500, slate-200, etc.). ONLY use CSS custom properties from the design system.",
+    "NEVER center-align body text or paragraph content. Left-align everything except single-line hero headings.",
+    "NEVER use emoji or placeholder illustrations as section icons. Use Lucide icons or nothing.",
+    "NEVER use more than 2 font weights on a single component (regular + semibold). Add medium only for navigation.",
+    "NEVER put a shadow AND a border on the same element. Choose one.",
+    "NEVER make all cards in a grid the same visual weight. Primary content gets more space.",
+    "NEVER use padding larger than p-6 on cards. p-4 or p-5 is correct for most cards.",
+    "NEVER use text-center on cards or list items. Left-align content.",
+    "NEVER use bright saturated colors for backgrounds. Backgrounds are always near-black, near-white, or muted.",
+    "NEVER use more than ONE accent color. Pick one. Use it sparingly \u2014 badges, active states, primary buttons, links. That's it.",
+    "NEVER stack multiple hover effects (scale + shadow + color change). One subtle transition per element.",
+    "NEVER use placeholder text like 'Lorem ipsum' or 'Description goes here'. Use realistic sample data.",
+    "NEVER use Comic Sans, Papyrus, or any decorative font for body text.",
+    "NEVER render a page without a loading state. Every data fetch shows a skeleton loader or spinner.",
+    "NEVER show a raw error message from the server. Wrap errors in a user-friendly alert component.",
+    "NEVER build a form without inline validation feedback. Show errors per-field, not just a top-level banner.",
+    "NEVER build a list without an empty state. If there are zero items, show a message + CTA to create the first one.",
+    "NEVER build a delete action without a confirmation step. Use a modal or inline confirm.",
+    "NEVER hardcode widths on text containers. Use max-w-* constraints and let content flow.",
+    "NEVER ship a page that only works at desktop width. Every layout must degrade gracefully to mobile.",
+    "NEVER put clickable elements closer than 8px apart on mobile. Touch targets need min 44px height.",
+    "NEVER use onClick on a div without role='button' and tabIndex={0} and onKeyDown for Enter/Space.",
+    "NEVER show a success action without feedback. Toast, inline message, or redirect \u2014 the user must know it worked.",
+    "NEVER build a multi-step form without progress indication. Show which step the user is on and how many remain.",
+    "NEVER auto-close a toast with important information in less than 5 seconds. Error toasts should require manual dismiss.",
+    "NEVER render timestamps without relative formatting. Show '2 hours ago' not '2026-04-03T14:22:00Z'."
+  ],
+  "palettes": {
+    "_instructions": "Each build gets ONE palette. The scaffold picks it based on template or randomly. The model ONLY uses these CSS variable names \u2014 never raw hex values in component code.",
+    "midnight": {
+      "description": "Dark-first. Linear/Vercel energy. Professional, dense, focused.",
+      "css_variables": {
+        "--bg-primary": "#09090b",
+        "--bg-secondary": "#18181b",
+        "--bg-tertiary": "#27272a",
+        "--surface": "#1c1c1f",
+        "--surface-hover": "#252529",
+        "--surface-active": "#2e2e33",
+        "--border": "#2e2e33",
+        "--border-subtle": "#232328",
+        "--text-primary": "#fafafa",
+        "--text-secondary": "#a1a1aa",
+        "--text-tertiary": "#71717a",
+        "--text-muted": "#52525b",
+        "--accent": "#6366f1",
+        "--accent-hover": "#818cf8",
+        "--accent-muted": "rgba(99, 102, 241, 0.12)",
+        "--success": "#22c55e",
+        "--success-muted": "rgba(34, 197, 94, 0.1)",
+        "--warning": "#f59e0b",
+        "--warning-muted": "rgba(245, 158, 11, 0.1)",
+        "--error": "#ef4444",
+        "--error-muted": "rgba(239, 68, 68, 0.1)",
+        "--info": "#3b82f6",
+        "--info-muted": "rgba(59, 130, 246, 0.1)"
+      }
+    },
+    "bone": {
+      "description": "Light-first. Stripe/Notion energy. Clean, warm, editorial.",
+      "css_variables": {
+        "--bg-primary": "#faf9f7",
+        "--bg-secondary": "#f5f3f0",
+        "--bg-tertiary": "#eceae6",
+        "--surface": "#ffffff",
+        "--surface-hover": "#f9f8f6",
+        "--surface-active": "#f0eeeb",
+        "--border": "#e5e2dd",
+        "--border-subtle": "#eceae6",
+        "--text-primary": "#1a1a1a",
+        "--text-secondary": "#525252",
+        "--text-tertiary": "#737373",
+        "--text-muted": "#a3a3a3",
+        "--accent": "#e11d48",
+        "--accent-hover": "#f43f5e",
+        "--accent-muted": "rgba(225, 29, 72, 0.08)",
+        "--success": "#16a34a",
+        "--success-muted": "rgba(22, 163, 74, 0.08)",
+        "--warning": "#d97706",
+        "--warning-muted": "rgba(217, 119, 6, 0.08)",
+        "--error": "#dc2626",
+        "--error-muted": "rgba(220, 38, 38, 0.08)",
+        "--info": "#2563eb",
+        "--info-muted": "rgba(37, 99, 235, 0.08)"
+      }
+    },
+    "carbon": {
+      "description": "Dark-first. GitHub/Raycast energy. Neutral, technical, no-nonsense.",
+      "css_variables": {
+        "--bg-primary": "#0d1117",
+        "--bg-secondary": "#161b22",
+        "--bg-tertiary": "#21262d",
+        "--surface": "#161b22",
+        "--surface-hover": "#1c2129",
+        "--surface-active": "#262c36",
+        "--border": "#30363d",
+        "--border-subtle": "#21262d",
+        "--text-primary": "#e6edf3",
+        "--text-secondary": "#8b949e",
+        "--text-tertiary": "#6e7681",
+        "--text-muted": "#484f58",
+        "--accent": "#58a6ff",
+        "--accent-hover": "#79c0ff",
+        "--accent-muted": "rgba(88, 166, 255, 0.1)",
+        "--success": "#3fb950",
+        "--success-muted": "rgba(63, 185, 80, 0.1)",
+        "--warning": "#d29922",
+        "--warning-muted": "rgba(210, 153, 34, 0.1)",
+        "--error": "#f85149",
+        "--error-muted": "rgba(248, 81, 73, 0.1)",
+        "--info": "#58a6ff",
+        "--info-muted": "rgba(88, 166, 255, 0.1)"
+      }
+    },
+    "sand": {
+      "description": "Light-first. Minimal, warm, premium. High-end agency.",
+      "css_variables": {
+        "--bg-primary": "#fefcf9",
+        "--bg-secondary": "#f8f5f0",
+        "--bg-tertiary": "#f0ece4",
+        "--surface": "#ffffff",
+        "--surface-hover": "#faf8f5",
+        "--surface-active": "#f3f0ea",
+        "--border": "#e8e3da",
+        "--border-subtle": "#f0ece4",
+        "--text-primary": "#1c1917",
+        "--text-secondary": "#57534e",
+        "--text-tertiary": "#78716c",
+        "--text-muted": "#a8a29e",
+        "--accent": "#b45309",
+        "--accent-hover": "#d97706",
+        "--accent-muted": "rgba(180, 83, 9, 0.08)",
+        "--success": "#15803d",
+        "--success-muted": "rgba(21, 128, 61, 0.08)",
+        "--warning": "#ca8a04",
+        "--warning-muted": "rgba(202, 138, 4, 0.08)",
+        "--error": "#b91c1c",
+        "--error-muted": "rgba(185, 28, 28, 0.08)",
+        "--info": "#1d4ed8",
+        "--info-muted": "rgba(29, 78, 216, 0.08)"
+      }
+    },
+    "obsidian": {
+      "description": "Ultra-dark. Moody, cinematic, high-contrast. Luxury SaaS.",
+      "css_variables": {
+        "--bg-primary": "#050505",
+        "--bg-secondary": "#0a0a0a",
+        "--bg-tertiary": "#141414",
+        "--surface": "#0f0f0f",
+        "--surface-hover": "#171717",
+        "--surface-active": "#1f1f1f",
+        "--border": "#262626",
+        "--border-subtle": "#1a1a1a",
+        "--text-primary": "#f5f5f5",
+        "--text-secondary": "#a3a3a3",
+        "--text-tertiary": "#737373",
+        "--text-muted": "#525252",
+        "--accent": "#a855f7",
+        "--accent-hover": "#c084fc",
+        "--accent-muted": "rgba(168, 85, 247, 0.1)",
+        "--success": "#4ade80",
+        "--success-muted": "rgba(74, 222, 128, 0.1)",
+        "--warning": "#fbbf24",
+        "--warning-muted": "rgba(251, 191, 36, 0.1)",
+        "--error": "#f87171",
+        "--error-muted": "rgba(248, 113, 113, 0.1)",
+        "--info": "#60a5fa",
+        "--info-muted": "rgba(96, 165, 250, 0.1)"
+      }
+    }
+  },
+  "typography": {
+    "_instructions": "Each build gets ONE font pairing. Injected as Google Fonts imports in layout.tsx. Model never chooses fonts.",
+    "pairings": [
+      {
+        "name": "editorial",
+        "heading": "DM Serif Display",
+        "body": "DM Sans",
+        "mono": "DM Mono",
+        "vibe": "Elegant, editorial, content-heavy apps"
+      },
+      {
+        "name": "technical",
+        "heading": "JetBrains Mono",
+        "body": "Inter",
+        "mono": "JetBrains Mono",
+        "vibe": "Developer tools, dashboards, data-dense UIs"
+      },
+      {
+        "name": "modern",
+        "heading": "Instrument Serif",
+        "body": "Instrument Sans",
+        "mono": "IBM Plex Mono",
+        "vibe": "Contemporary SaaS, marketing sites"
+      },
+      {
+        "name": "humanist",
+        "heading": "Fraunces",
+        "body": "Outfit",
+        "mono": "Fira Code",
+        "vibe": "Approachable, consumer apps, onboarding"
+      },
+      {
+        "name": "geometric",
+        "heading": "Sora",
+        "body": "Sora",
+        "mono": "Space Mono",
+        "vibe": "Clean, geometric, fintech/enterprise"
+      },
+      {
+        "name": "sharp",
+        "heading": "Clash Display",
+        "body": "Satoshi",
+        "mono": "Geist Mono",
+        "vibe": "Bold, startup energy, landing pages"
+      }
+    ],
+    "scale": {
+      "xs": "text-xs tracking-wide",
+      "sm": "text-sm",
+      "base": "text-sm leading-relaxed",
+      "lg": "text-lg font-medium",
+      "xl": "text-xl font-semibold",
+      "2xl": "text-2xl font-semibold tracking-tight",
+      "3xl": "text-3xl font-bold tracking-tight",
+      "hero": "text-5xl font-bold tracking-tighter leading-none"
+    }
+  },
+  "component_recipes": {
+    "_instructions": "Each recipe is a complete, copy-paste pattern. The model references these by name and uses the class strings EXACTLY. Do not improvise. Every component includes hover states, transitions, loading states, and error states where applicable.",
+    "stat_card": {
+      "description": "Single metric display. Used in dashboard stat rows. Max 4 per row.",
+      "container": "p-5 rounded-lg border border-[var(--border)] bg-[var(--surface)]",
+      "label": "text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] mb-1",
+      "value": "text-2xl font-semibold text-[var(--text-primary)] tracking-tight tabular-nums",
+      "change": {
+        "positive": "text-xs font-medium text-[var(--success)] mt-1 flex items-center gap-1",
+        "negative": "text-xs font-medium text-[var(--error)] mt-1 flex items-center gap-1"
+      },
+      "sparkline_area": "mt-3 h-8",
+      "loading": "animate-pulse space-y-2: [div.h-3.w-20.rounded.bg-[var(--bg-tertiary)]], [div.h-7.w-16.rounded.bg-[var(--bg-tertiary)]]",
+      "notes": "No shadow. No icon in the card. Label + number + optional change + optional sparkline. Use tabular-nums for numbers so they don't shift on update."
+    },
+    "data_table": {
+      "description": "Primary data display for lists of entities. Handles sorting, selection, pagination.",
+      "wrapper": "w-full overflow-x-auto",
+      "table": "w-full text-sm",
+      "thead": "border-b border-[var(--border)]",
+      "th": "text-left text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] py-3 px-4 select-none",
+      "th_sortable": "text-left text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] py-3 px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors duration-100 select-none group",
+      "th_sort_icon": "inline-block ml-1 opacity-0 group-hover:opacity-50 transition-opacity",
+      "th_numeric": "text-right text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] py-3 px-4",
+      "tbody_tr": "border-b border-[var(--border-subtle)] hover:bg-[var(--surface-hover)] transition-colors duration-100",
+      "tbody_tr_selected": "border-b border-[var(--border-subtle)] bg-[var(--accent-muted)]",
+      "td": "py-3 px-4 text-[var(--text-primary)]",
+      "td_secondary": "py-3 px-4 text-[var(--text-secondary)]",
+      "td_numeric": "py-3 px-4 text-right text-[var(--text-primary)] tabular-nums",
+      "td_truncate": "py-3 px-4 text-[var(--text-primary)] max-w-[200px] truncate",
+      "checkbox": "w-4 h-4 rounded border border-[var(--border)] bg-[var(--bg-tertiary)] accent-[var(--accent)]",
+      "empty_state": "py-16 text-center text-[var(--text-muted)] text-sm",
+      "pagination": "flex items-center justify-between px-4 py-3 border-t border-[var(--border)]",
+      "pagination_info": "text-sm text-[var(--text-tertiary)]",
+      "pagination_buttons": "flex items-center gap-1",
+      "pagination_btn": "px-3 py-1.5 rounded-md text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors duration-100",
+      "pagination_btn_active": "px-3 py-1.5 rounded-md text-sm bg-[var(--accent-muted)] text-[var(--accent)] font-medium",
+      "notes": "No outer border on the table. No zebra striping. Hover rows. Right-align numbers. Sortable headers show icon on hover. Always include pagination for >10 rows."
+    },
+    "sidebar": {
+      "description": "Fixed left navigation. Always visible on desktop, drawer on mobile.",
+      "container": "fixed left-0 top-0 h-screen w-64 bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col z-40",
+      "logo_area": "h-14 flex items-center px-4 border-b border-[var(--border)]",
+      "nav_section_label": "text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] px-4 pt-6 pb-2",
+      "nav_item": "flex items-center gap-3 px-4 py-2 mx-2 rounded-md text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer",
+      "nav_item_active": "flex items-center gap-3 px-4 py-2 mx-2 rounded-md text-sm text-[var(--text-primary)] bg-[var(--accent-muted)] font-medium",
+      "nav_item_with_count": "flex items-center gap-3 px-4 py-2 mx-2 rounded-md text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer [span.ml-auto.text-xs.tabular-nums.text-[var(--text-muted)]]",
+      "nav_icon": "w-4 h-4 shrink-0",
+      "nav_divider": "h-px bg-[var(--border)] mx-4 my-2",
+      "user_area": "mt-auto p-4 border-t border-[var(--border)] flex items-center gap-3",
+      "user_avatar": "w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-xs font-medium text-[var(--text-secondary)]",
+      "mobile_overlay": "fixed inset-0 bg-black/50 z-30 lg:hidden",
+      "mobile_close": "absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-md hover:bg-[var(--surface-hover)] transition-colors duration-100",
+      "collapse_btn": "hidden lg:flex items-center justify-center w-6 h-6 rounded-md absolute -right-3 top-7 bg-[var(--bg-secondary)] border border-[var(--border)] hover:bg-[var(--surface-hover)] cursor-pointer z-50",
+      "notes": "No shadow. Border-right only. Active item uses accent-muted bg. Mobile: overlay + slide-in drawer. Include collapse button for desktop. Notification counts right-aligned in nav items."
+    },
+    "header": {
+      "description": "Top bar inside main content area. Contains page title, breadcrumbs, actions.",
+      "container": "h-14 flex items-center justify-between px-6 border-b border-[var(--border)] bg-[var(--bg-primary)] sticky top-0 z-20",
+      "title": "text-lg font-semibold text-[var(--text-primary)]",
+      "breadcrumb": "flex items-center gap-2 text-sm text-[var(--text-tertiary)]",
+      "breadcrumb_separator": "text-[var(--text-muted)]",
+      "breadcrumb_current": "text-[var(--text-primary)] font-medium",
+      "breadcrumb_link": "hover:text-[var(--text-primary)] transition-colors duration-100 cursor-pointer",
+      "actions_area": "flex items-center gap-2",
+      "mobile_menu_btn": "lg:hidden w-9 h-9 flex items-center justify-center rounded-md hover:bg-[var(--surface-hover)] transition-colors duration-100",
+      "notes": "Sticky top-0 z-20. Border-bottom only, no shadow. Mobile: include hamburger menu button to toggle sidebar."
+    },
+    "button": {
+      "primary": "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed",
+      "secondary": "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-[var(--border)] text-[var(--text-primary)] bg-transparent hover:bg-[var(--surface-hover)] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed",
+      "ghost": "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed",
+      "danger": "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--error)] text-white hover:opacity-90 transition-opacity duration-150 disabled:opacity-50 disabled:cursor-not-allowed",
+      "icon_only": "inline-flex items-center justify-center w-9 h-9 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-150",
+      "loading_spinner": "w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin",
+      "sm": "text-xs px-3 py-1.5",
+      "lg": "text-base px-6 py-2.5",
+      "notes": "No shadow. No gradient. No rounded-full except avatar buttons. Always include disabled state. Loading state replaces label text with spinner + 'Loading...' or action verb ('Saving...')."
+    },
+    "input": {
+      "text": "w-full px-3 py-2 rounded-md text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed",
+      "with_icon_left": "w-full pl-9 pr-3 py-2 rounded-md text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-colors duration-150",
+      "with_addon": "flex rounded-md overflow-hidden border border-[var(--border)] focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]",
+      "addon_left": "px-3 py-2 bg-[var(--bg-secondary)] border-r border-[var(--border)] text-sm text-[var(--text-tertiary)] flex items-center",
+      "textarea": "w-full px-3 py-2 rounded-md text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-colors duration-150 resize-y min-h-[100px]",
+      "label": "block text-sm font-medium text-[var(--text-secondary)] mb-1.5",
+      "required_indicator": "text-[var(--error)] ml-0.5",
+      "helper": "text-xs text-[var(--text-tertiary)] mt-1",
+      "error_text": "text-xs text-[var(--error)] mt-1 flex items-center gap-1",
+      "error_border": "border-[var(--error)] focus:border-[var(--error)] focus:ring-[var(--error)]",
+      "success_border": "border-[var(--success)] focus:border-[var(--success)] focus:ring-[var(--success)]",
+      "field_group": "space-y-1",
+      "character_count": "text-xs text-[var(--text-muted)] text-right mt-1 tabular-nums",
+      "notes": "Input bg is bg-tertiary for depth. Error state: red border + error message below. Success state: green border. Always show character count for textarea if max length exists. Required fields show red asterisk after label."
+    },
+    "select": {
+      "trigger": "w-full px-3 py-2 rounded-md text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-colors duration-150 appearance-none cursor-pointer",
+      "multi_select_tag": "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)]",
+      "multi_select_remove": "w-3 h-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer",
+      "notes": "Same styling as text input. Add chevron icon via positioned SVG. Multi-select shows tags in the input area."
+    },
+    "checkbox": {
+      "container": "flex items-center gap-2 cursor-pointer group",
+      "input": "w-4 h-4 rounded border border-[var(--border)] bg-[var(--bg-tertiary)] accent-[var(--accent)] cursor-pointer",
+      "label": "text-sm text-[var(--text-primary)] select-none group-hover:text-[var(--text-primary)]",
+      "description": "text-xs text-[var(--text-tertiary)] ml-6"
+    },
+    "radio": {
+      "container": "flex items-center gap-2 cursor-pointer group",
+      "input": "w-4 h-4 rounded-full border border-[var(--border)] bg-[var(--bg-tertiary)] accent-[var(--accent)] cursor-pointer",
+      "label": "text-sm text-[var(--text-primary)] select-none",
+      "group": "space-y-3"
+    },
+    "toggle_switch": {
+      "container": "flex items-center gap-3 cursor-pointer",
+      "track_off": "w-9 h-5 rounded-full bg-[var(--bg-tertiary)] border border-[var(--border)] transition-colors duration-200 relative",
+      "track_on": "w-9 h-5 rounded-full bg-[var(--accent)] transition-colors duration-200 relative",
+      "thumb": "absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200 shadow-sm",
+      "thumb_on": "translate-x-4",
+      "label": "text-sm text-[var(--text-primary)]"
+    },
+    "badge": {
+      "default": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
+      "accent": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-muted)] text-[var(--accent)]",
+      "success": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--success-muted)] text-[var(--success)]",
+      "warning": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--warning-muted)] text-[var(--warning)]",
+      "error": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--error-muted)] text-[var(--error)]",
+      "info": "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--info-muted)] text-[var(--info)]",
+      "dot_indicator": "w-1.5 h-1.5 rounded-full mr-1.5",
+      "removable": "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium [button.ml-0.5.hover:opacity-70]",
+      "notes": "Always rounded-full. Use semantic muted bg for colored variants. Dot indicator for status badges (online/offline/busy). Removable badges include an X button."
+    },
+    "modal": {
+      "overlay": "fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4",
+      "container": "w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-xl p-0 animate-in fade-in zoom-in-95",
+      "container_sm": "w-full max-w-sm rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-xl p-0",
+      "container_lg": "w-full max-w-2xl rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-xl p-0",
+      "container_fullscreen": "w-full h-full max-w-none rounded-none border-0 bg-[var(--bg-secondary)]",
+      "header": "flex items-center justify-between px-6 py-4 border-b border-[var(--border)]",
+      "header_title": "text-base font-semibold text-[var(--text-primary)]",
+      "header_description": "text-sm text-[var(--text-tertiary)] mt-0.5",
+      "close_btn": "w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100",
+      "body": "px-6 py-4 max-h-[60vh] overflow-y-auto",
+      "footer": "flex items-center justify-end gap-2 px-6 py-4 border-t border-[var(--border)]",
+      "footer_left_aligned": "flex items-center justify-between px-6 py-4 border-t border-[var(--border)]",
+      "notes": "Modal is the ONE place rounded-xl is acceptable. Uses shadow-xl (only element that should). Overlay has backdrop-blur. Close on Escape key. Close on overlay click. Trap focus inside modal."
+    },
+    "confirmation_dialog": {
+      "description": "text-sm text-[var(--text-tertiary)] text-center mt-2",
+      "container": "w-full max-w-sm rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-xl p-6",
+      "icon": "w-12 h-12 mx-auto rounded-full bg-[var(--error-muted)] flex items-center justify-center text-[var(--error)] mb-4",
+      "title": "text-base font-semibold text-[var(--text-primary)] text-center",
+      "actions": "flex gap-3 mt-6",
+      "cancel_btn": "flex-1 px-4 py-2 rounded-md text-sm font-medium border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-150",
+      "confirm_btn": "flex-1 px-4 py-2 rounded-md text-sm font-medium bg-[var(--error)] text-white hover:opacity-90 transition-opacity duration-150",
+      "notes": "Full-width buttons. Cancel on left, destructive action on right. Always name the action specifically ('Delete project' not 'Confirm')."
+    },
+    "empty_state": {
+      "container": "flex flex-col items-center justify-center py-16 px-4",
+      "icon": "w-12 h-12 text-[var(--text-muted)] mb-4",
+      "title": "text-base font-medium text-[var(--text-primary)] mb-1",
+      "description": "text-sm text-[var(--text-tertiary)] mb-4 text-center max-w-sm",
+      "notes": "Use a relevant Lucide icon. Keep copy concise. Primary CTA button below description. EVERY list/table must have this for zero-item state."
+    },
+    "search_bar": {
+      "container": "relative",
+      "input": "w-full pl-9 pr-4 py-2 rounded-md text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-colors duration-150",
+      "icon": "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]",
+      "kbd_shortcut": "absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--text-muted)] bg-[var(--bg-primary)] border border-[var(--border)] rounded px-1.5 py-0.5 font-mono",
+      "clear_btn": "absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer",
+      "results_dropdown": "absolute top-full left-0 right-0 mt-1 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] shadow-lg max-h-80 overflow-y-auto z-30",
+      "result_item": "flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] cursor-pointer",
+      "result_highlight": "text-[var(--text-primary)] font-medium",
+      "no_results": "px-4 py-8 text-center text-sm text-[var(--text-muted)]",
+      "notes": "Search icon inside input. Keyboard shortcut badge (CMD+K) or clear button on right \u2014 never both. Debounce search input by 300ms. Show loading spinner in results while fetching."
+    },
+    "dropdown_menu": {
+      "container": "min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] shadow-lg p-1 z-50",
+      "item": "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer",
+      "item_with_shortcut": "flex items-center justify-between w-full px-3 py-2 rounded-md text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer",
+      "shortcut": "text-xs text-[var(--text-muted)] font-mono",
+      "item_destructive": "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-[var(--error)] hover:bg-[var(--error-muted)] transition-colors duration-100 cursor-pointer",
+      "separator": "h-px bg-[var(--border)] my-1 mx-2",
+      "section_label": "px-3 py-1.5 text-xs font-medium text-[var(--text-muted)]",
+      "notes": "Rounded-lg for dropdowns. p-1 outer padding with rounded-md items inside. Close on click outside. Close on Escape. Keyboard arrow navigation."
+    },
+    "card": {
+      "default": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5",
+      "interactive": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 hover:border-[var(--border)] hover:bg-[var(--surface-hover)] transition-colors duration-150 cursor-pointer",
+      "selected": "rounded-lg border-2 border-[var(--accent)] bg-[var(--surface)] p-5",
+      "header": "flex items-center justify-between mb-4",
+      "header_title": "text-sm font-semibold text-[var(--text-primary)]",
+      "header_action": "text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors duration-100 cursor-pointer",
+      "footer": "mt-4 pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between",
+      "notes": "No shadow. Border only. p-5 standard padding. Interactive cards change bg on hover. Selected cards use accent border."
+    },
+    "avatar": {
+      "xs": "w-5 h-5 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[8px] font-medium text-[var(--text-secondary)] shrink-0",
+      "sm": "w-6 h-6 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[10px] font-medium text-[var(--text-secondary)] shrink-0",
+      "md": "w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-xs font-medium text-[var(--text-secondary)] shrink-0",
+      "lg": "w-10 h-10 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-sm font-medium text-[var(--text-secondary)] shrink-0",
+      "xl": "w-16 h-16 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-xl font-medium text-[var(--text-secondary)] shrink-0",
+      "group": "flex -space-x-2",
+      "group_overflow": "w-8 h-8 rounded-full bg-[var(--bg-tertiary)] border-2 border-[var(--bg-primary)] flex items-center justify-center text-[10px] font-medium text-[var(--text-muted)]",
+      "status_indicator": "absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[var(--bg-primary)]",
+      "status_online": "bg-[var(--success)]",
+      "status_offline": "bg-[var(--text-muted)]",
+      "status_busy": "bg-[var(--error)]",
+      "notes": "Show initials by default. When image: object-cover rounded-full. Group: -space-x-2. Overflow: '+3' counter. Status dot positioned absolute bottom-right."
+    },
+    "tabs": {
+      "container": "flex items-center gap-1 border-b border-[var(--border)]",
+      "tab": "px-4 py-2.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors duration-100 relative cursor-pointer",
+      "tab_active": "px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] relative cursor-pointer after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[var(--accent)]",
+      "tab_with_count": "px-4 py-2.5 text-sm font-medium text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors duration-100 relative cursor-pointer flex items-center gap-2",
+      "tab_count": "text-xs tabular-nums px-1.5 py-0.5 rounded-full bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+      "pill_container": "flex items-center gap-1 bg-[var(--bg-tertiary)] p-1 rounded-lg",
+      "pill_tab": "px-3 py-1.5 text-sm font-medium text-[var(--text-tertiary)] rounded-md transition-colors duration-100 cursor-pointer",
+      "pill_tab_active": "px-3 py-1.5 text-sm font-medium text-[var(--text-primary)] bg-[var(--surface)] rounded-md shadow-sm",
+      "notes": "Underline tabs for primary navigation. Pill tabs for view switching (List/Board/Calendar). Active tab: accent underline. Counts show in tabular-nums."
+    },
+    "toast": {
+      "container": "fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none",
+      "toast_base": "flex items-start gap-3 px-4 py-3 rounded-lg border bg-[var(--bg-secondary)] shadow-lg text-sm min-w-[320px] max-w-[420px] pointer-events-auto",
+      "toast_success": "border-[var(--success)]/30",
+      "toast_error": "border-[var(--error)]/30",
+      "toast_warning": "border-[var(--warning)]/30",
+      "toast_info": "border-[var(--border)]",
+      "icon": "w-5 h-5 shrink-0 mt-0.5",
+      "content": "flex-1 min-w-0",
+      "title": "font-medium text-[var(--text-primary)]",
+      "message": "text-sm text-[var(--text-secondary)] mt-0.5",
+      "close": "w-5 h-5 shrink-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer mt-0.5",
+      "progress_bar": "absolute bottom-0 left-0 h-0.5 bg-[var(--accent)] rounded-b-lg transition-all duration-100",
+      "notes": "Bottom-right. Shadow-lg OK for toasts. Auto-dismiss after 5s (info) or manual dismiss (errors). Progress bar shows remaining time. Stack from bottom."
+    },
+    "kanban_column": {
+      "container": "flex-shrink-0 w-72 flex flex-col bg-[var(--bg-secondary)] rounded-lg max-h-[calc(100vh-160px)]",
+      "header": "flex items-center justify-between px-3 py-2.5 sticky top-0 bg-[var(--bg-secondary)] rounded-t-lg z-10",
+      "header_title": "text-sm font-medium text-[var(--text-primary)] flex items-center gap-2",
+      "header_count": "text-xs text-[var(--text-muted)] bg-[var(--bg-tertiary)] rounded-full px-2 py-0.5 min-w-[20px] text-center tabular-nums",
+      "header_menu": "w-6 h-6 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] cursor-pointer",
+      "card_list": "flex flex-col gap-2 px-2 pb-2 min-h-[100px] overflow-y-auto",
+      "task_card": "p-3 rounded-md border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent)] transition-colors duration-100 cursor-grab active:cursor-grabbing",
+      "task_card_dragging": "p-3 rounded-md border border-[var(--accent)] bg-[var(--surface)] shadow-lg opacity-90 rotate-2",
+      "task_title": "text-sm text-[var(--text-primary)] mb-2 line-clamp-2",
+      "task_meta": "flex items-center gap-2 text-xs text-[var(--text-tertiary)]",
+      "task_labels": "flex flex-wrap gap-1 mb-2",
+      "task_label": "px-1.5 py-0.5 rounded text-[10px] font-medium",
+      "drop_zone": "border-2 border-dashed border-[var(--accent)]/30 rounded-md min-h-[80px] flex items-center justify-center text-sm text-[var(--text-muted)]",
+      "add_button": "mx-2 mb-2 px-3 py-1.5 rounded-md text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer text-center",
+      "notes": "Columns w-72, flex-shrink-0 for horizontal scroll. Cards use cursor-grab/cursor-grabbing. Drop zone visible during drag. Column scrolls independently if content overflows."
+    },
+    "skeleton_loader": {
+      "line": "h-4 rounded bg-[var(--bg-tertiary)] animate-pulse",
+      "line_short": "h-4 w-2/3 rounded bg-[var(--bg-tertiary)] animate-pulse",
+      "line_xs": "h-3 rounded bg-[var(--bg-tertiary)] animate-pulse",
+      "circle": "rounded-full bg-[var(--bg-tertiary)] animate-pulse",
+      "rect": "rounded-md bg-[var(--bg-tertiary)] animate-pulse",
+      "card": "rounded-lg border border-[var(--border)] p-5 space-y-3",
+      "table_row": "flex items-center gap-4 py-3 px-4",
+      "stat": "p-5 rounded-lg border border-[var(--border)]: [div.h-3.w-20.rounded.bg-[var(--bg-tertiary)].animate-pulse.mb-2], [div.h-7.w-24.rounded.bg-[var(--bg-tertiary)].animate-pulse]",
+      "notes": "Use in EVERY component while data loads. Match skeleton shape to expected content. Page-level skeleton: stat skeletons + table row skeletons. Never show a blank page."
+    },
+    "command_palette": {
+      "overlay": "fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-[20vh]",
+      "container": "w-full max-w-xl rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-2xl overflow-hidden",
+      "input_wrapper": "flex items-center gap-3 px-4 border-b border-[var(--border)]",
+      "search_icon": "w-5 h-5 text-[var(--text-muted)] shrink-0",
+      "input": "flex-1 py-3.5 text-sm bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none",
+      "results_list": "max-h-[300px] overflow-y-auto py-2",
+      "result_item": "flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] cursor-pointer",
+      "result_item_active": "flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-primary)] bg-[var(--surface-hover)]",
+      "result_icon": "w-4 h-4 shrink-0 text-[var(--text-muted)]",
+      "result_shortcut": "ml-auto text-xs text-[var(--text-muted)] font-mono",
+      "section_label": "px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]",
+      "no_results": "py-8 text-center text-sm text-[var(--text-muted)]",
+      "footer": "flex items-center justify-between px-4 py-2 border-t border-[var(--border)] text-xs text-[var(--text-muted)]",
+      "notes": "CMD+K to open. Keyboard arrow navigation. Enter to select. Escape to close. Sections group results (Pages, Actions, Settings). Include in every dashboard app."
+    },
+    "alert_banner": {
+      "info": "flex items-start gap-3 px-4 py-3 rounded-lg bg-[var(--info-muted)] border border-[var(--info)]/20 text-sm text-[var(--text-primary)]",
+      "success": "flex items-start gap-3 px-4 py-3 rounded-lg bg-[var(--success-muted)] border border-[var(--success)]/20 text-sm text-[var(--text-primary)]",
+      "warning": "flex items-start gap-3 px-4 py-3 rounded-lg bg-[var(--warning-muted)] border border-[var(--warning)]/20 text-sm text-[var(--text-primary)]",
+      "error": "flex items-start gap-3 px-4 py-3 rounded-lg bg-[var(--error-muted)] border border-[var(--error)]/20 text-sm text-[var(--text-primary)]",
+      "icon": "w-5 h-5 shrink-0 mt-0.5",
+      "content": "flex-1",
+      "title": "font-medium mb-0.5",
+      "dismiss": "w-5 h-5 shrink-0 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer mt-0.5",
+      "notes": "Top of page or inline. Dismissable with X button. Error alerts are not auto-dismissable."
+    },
+    "progress_bar": {
+      "container": "w-full h-2 rounded-full bg-[var(--bg-tertiary)] overflow-hidden",
+      "fill": "h-full rounded-full bg-[var(--accent)] transition-all duration-500 ease-out",
+      "fill_success": "h-full rounded-full bg-[var(--success)]",
+      "fill_warning": "h-full rounded-full bg-[var(--warning)]",
+      "fill_error": "h-full rounded-full bg-[var(--error)]",
+      "label_row": "flex items-center justify-between mb-1.5",
+      "label": "text-sm font-medium text-[var(--text-primary)]",
+      "value": "text-sm text-[var(--text-secondary)] tabular-nums",
+      "notes": "Use for uploads, onboarding completion, quotas. Animate width transition. Show percentage or fraction (3/10)."
+    },
+    "stepper": {
+      "container": "flex items-center gap-2",
+      "step_complete": "w-8 h-8 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm",
+      "step_current": "w-8 h-8 rounded-full border-2 border-[var(--accent)] flex items-center justify-center text-[var(--accent)] text-sm font-medium",
+      "step_upcoming": "w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[var(--text-muted)] text-sm",
+      "connector": "flex-1 h-0.5 bg-[var(--border)]",
+      "connector_complete": "flex-1 h-0.5 bg-[var(--accent)]",
+      "step_label": "text-xs text-[var(--text-tertiary)] mt-1",
+      "step_label_current": "text-xs text-[var(--text-primary)] font-medium mt-1",
+      "notes": "Use for multi-step forms, onboarding, checkout. Completed steps show checkmark. Current step has accent border. Upcoming steps are muted."
+    },
+    "tooltip": {
+      "container": "absolute z-50 px-2.5 py-1.5 rounded-md bg-[var(--bg-secondary)] border border-[var(--border)] shadow-lg text-xs text-[var(--text-primary)] max-w-[200px] pointer-events-none",
+      "arrow": "absolute w-2 h-2 bg-[var(--bg-secondary)] border border-[var(--border)] rotate-45",
+      "notes": "Show on hover after 300ms delay. Position above by default, flip if near viewport edge. Max width 200px, text wraps."
+    },
+    "breadcrumb": {
+      "container": "flex items-center gap-1.5 text-sm",
+      "item": "text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors duration-100 cursor-pointer",
+      "separator": "text-[var(--text-muted)] text-xs",
+      "current": "text-[var(--text-primary)] font-medium",
+      "notes": "Use / or > as separator. Last item is current page (not clickable, bolder). Truncate middle items on mobile with '...'."
+    },
+    "file_upload": {
+      "dropzone": "border-2 border-dashed border-[var(--border)] rounded-lg p-8 text-center hover:border-[var(--accent)] hover:bg-[var(--accent-muted)] transition-all duration-150 cursor-pointer",
+      "dropzone_active": "border-2 border-dashed border-[var(--accent)] rounded-lg p-8 text-center bg-[var(--accent-muted)]",
+      "icon": "w-10 h-10 mx-auto text-[var(--text-muted)] mb-3",
+      "title": "text-sm font-medium text-[var(--text-primary)] mb-1",
+      "description": "text-xs text-[var(--text-tertiary)]",
+      "file_item": "flex items-center gap-3 px-3 py-2.5 rounded-md bg-[var(--surface)] border border-[var(--border)]",
+      "file_icon": "w-8 h-8 rounded-md bg-[var(--bg-tertiary)] flex items-center justify-center text-xs font-medium text-[var(--text-secondary)]",
+      "file_name": "text-sm text-[var(--text-primary)] truncate",
+      "file_size": "text-xs text-[var(--text-tertiary)]",
+      "file_progress": "w-full h-1 rounded-full bg-[var(--bg-tertiary)] mt-1",
+      "file_remove": "w-6 h-6 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--error)] hover:bg-[var(--error-muted)] transition-colors duration-100",
+      "notes": "Drag-and-drop zone with click fallback. Show file type icon based on extension. Progress bar during upload. Remove button per file."
+    },
+    "date_picker": {
+      "trigger": "flex items-center gap-2 px-3 py-2 rounded-md text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--accent)] transition-colors duration-150 cursor-pointer",
+      "calendar_container": "rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] shadow-lg p-3 w-[280px]",
+      "calendar_header": "flex items-center justify-between mb-2",
+      "calendar_month": "text-sm font-medium text-[var(--text-primary)]",
+      "calendar_nav": "w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] cursor-pointer",
+      "calendar_weekdays": "grid grid-cols-7 mb-1",
+      "calendar_weekday": "text-center text-xs text-[var(--text-muted)] py-1",
+      "calendar_grid": "grid grid-cols-7",
+      "calendar_day": "w-9 h-9 flex items-center justify-center rounded-md text-sm text-[var(--text-primary)] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors duration-100",
+      "calendar_day_today": "w-9 h-9 flex items-center justify-center rounded-md text-sm font-medium text-[var(--accent)] hover:bg-[var(--accent-muted)] cursor-pointer",
+      "calendar_day_selected": "w-9 h-9 flex items-center justify-center rounded-md text-sm font-medium bg-[var(--accent)] text-white",
+      "calendar_day_disabled": "w-9 h-9 flex items-center justify-center rounded-md text-sm text-[var(--text-muted)] cursor-not-allowed",
+      "calendar_day_range": "w-9 h-9 flex items-center justify-center text-sm text-[var(--text-primary)] bg-[var(--accent-muted)]",
+      "notes": "Calendar icon in trigger. Today highlighted with accent text. Selected date filled with accent bg. Range selection highlights in-between days with accent-muted."
+    },
+    "timeline": {
+      "container": "relative pl-8",
+      "line": "absolute left-3 top-0 bottom-0 w-px bg-[var(--border)]",
+      "item": "relative pb-6",
+      "dot": "absolute left-[-21px] top-1 w-6 h-6 rounded-full border-2 border-[var(--border)] bg-[var(--bg-primary)] flex items-center justify-center",
+      "dot_complete": "absolute left-[-21px] top-1 w-6 h-6 rounded-full bg-[var(--accent)] flex items-center justify-center text-white",
+      "content": "ml-2",
+      "title": "text-sm font-medium text-[var(--text-primary)]",
+      "description": "text-sm text-[var(--text-secondary)] mt-0.5",
+      "timestamp": "text-xs text-[var(--text-tertiary)] mt-1",
+      "notes": "Vertical timeline with dots on left line. Use for activity feeds, order tracking, project milestones."
+    },
+    "notification_list": {
+      "container": "w-full max-w-sm rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] shadow-lg overflow-hidden",
+      "header": "flex items-center justify-between px-4 py-3 border-b border-[var(--border)]",
+      "header_title": "text-sm font-semibold text-[var(--text-primary)]",
+      "mark_all_read": "text-xs text-[var(--accent)] hover:text-[var(--accent-hover)] cursor-pointer",
+      "item_unread": "flex gap-3 px-4 py-3 bg-[var(--accent-muted)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer border-b border-[var(--border-subtle)]",
+      "item_read": "flex gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer border-b border-[var(--border-subtle)]",
+      "unread_dot": "w-2 h-2 rounded-full bg-[var(--accent)] shrink-0 mt-1.5",
+      "text": "text-sm text-[var(--text-secondary)]",
+      "time": "text-xs text-[var(--text-muted)] mt-0.5",
+      "notes": "Unread items have accent-muted bg + dot. Click marks as read. 'Mark all read' in header."
+    },
+    "chat_message": {
+      "container_sent": "flex justify-end mb-3",
+      "container_received": "flex justify-start mb-3",
+      "bubble_sent": "max-w-[70%] px-4 py-2.5 rounded-2xl rounded-br-md bg-[var(--accent)] text-white text-sm",
+      "bubble_received": "max-w-[70%] px-4 py-2.5 rounded-2xl rounded-bl-md bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] text-sm",
+      "timestamp": "text-[10px] text-[var(--text-muted)] mt-1 px-1",
+      "input_container": "flex items-end gap-2 p-4 border-t border-[var(--border)]",
+      "input": "flex-1 px-4 py-2.5 rounded-2xl text-sm bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] resize-none max-h-32 overflow-y-auto",
+      "send_btn": "w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white hover:bg-[var(--accent-hover)] transition-colors duration-150",
+      "typing_indicator": "flex items-center gap-1 px-4 py-2 text-sm text-[var(--text-muted)]",
+      "typing_dots": "flex gap-1: [span.w-1.5.h-1.5.rounded-full.bg-[var(--text-muted)].animate-bounce]",
+      "notes": "Sent messages right-aligned with accent bg. Received left-aligned with surface bg. Rounded-2xl is acceptable ONLY for chat bubbles. Timestamps below each message or grouped."
+    },
+    "pricing_card": {
+      "default": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 space-y-6",
+      "featured": "rounded-lg border-2 border-[var(--accent)] bg-[var(--surface)] p-6 space-y-6 relative",
+      "featured_badge": "absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium bg-[var(--accent)] text-white",
+      "plan_name": "text-lg font-semibold text-[var(--text-primary)]",
+      "plan_price": "text-4xl font-bold text-[var(--text-primary)] tracking-tight",
+      "plan_period": "text-sm text-[var(--text-tertiary)] ml-1",
+      "plan_description": "text-sm text-[var(--text-secondary)]",
+      "feature_list": "space-y-3",
+      "feature_item": "flex items-center gap-2 text-sm text-[var(--text-secondary)]",
+      "feature_check": "w-4 h-4 text-[var(--success)] shrink-0",
+      "feature_unavailable": "flex items-center gap-2 text-sm text-[var(--text-muted)] line-through",
+      "notes": "Featured plan: border-2 accent + badge. CTA in featured = primary button. CTA in others = secondary button."
+    },
+    "calendar_cell": {
+      "container": "min-h-[100px] border-r border-b border-[var(--border)] p-1.5 hover:bg-[var(--surface-hover)] transition-colors duration-100",
+      "day_number": "text-xs font-medium text-[var(--text-secondary)] mb-1",
+      "day_today": "text-xs font-medium text-white bg-[var(--accent)] w-6 h-6 rounded-full flex items-center justify-center mb-1",
+      "event": "px-1.5 py-0.5 rounded text-[10px] font-medium truncate cursor-pointer mb-0.5",
+      "more_events": "text-[10px] text-[var(--accent)] cursor-pointer px-1.5",
+      "notes": "Month calendar view. Today's date gets accent circle. Events are small pills in the cell. +N more link for overflow."
+    },
+    "image_gallery": {
+      "grid": "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2",
+      "item": "relative aspect-square rounded-lg overflow-hidden group cursor-pointer",
+      "image": "w-full h-full object-cover group-hover:scale-105 transition-transform duration-300",
+      "overlay": "absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center",
+      "lightbox_overlay": "fixed inset-0 bg-black/90 z-50 flex items-center justify-center",
+      "lightbox_image": "max-w-[90vw] max-h-[85vh] object-contain rounded-lg",
+      "lightbox_nav": "absolute top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 cursor-pointer",
+      "notes": "Grid layout with aspect-square. Hover: subtle zoom + overlay. Click opens lightbox. Arrow keys navigate in lightbox. Escape closes."
+    },
+    "comment_thread": {
+      "container": "space-y-4",
+      "comment": "flex gap-3",
+      "comment_body": "flex-1",
+      "author": "text-sm font-medium text-[var(--text-primary)]",
+      "timestamp": "text-xs text-[var(--text-muted)] ml-2",
+      "content": "text-sm text-[var(--text-secondary)] mt-1 leading-relaxed",
+      "actions": "flex items-center gap-3 mt-2",
+      "action_btn": "text-xs text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer transition-colors duration-100",
+      "reply_container": "ml-11 mt-3 pl-4 border-l-2 border-[var(--border)] space-y-4",
+      "input_area": "flex gap-3 mt-4",
+      "notes": "Avatar left, content right. Replies indented with left border. Actions: Reply, Edit (own), Delete (own). Textarea for new comment with avatar."
+    },
+    "sidebar_detail": {
+      "description": "Right-side detail panel that slides in over content (e.g., entity detail, filters).",
+      "overlay": "fixed inset-0 bg-black/30 z-30",
+      "panel": "fixed right-0 top-0 h-screen w-[480px] max-w-full bg-[var(--bg-primary)] border-l border-[var(--border)] z-40 overflow-y-auto",
+      "header": "sticky top-0 flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-primary)] z-10",
+      "close": "w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]",
+      "body": "px-6 py-4",
+      "section": "py-4 border-b border-[var(--border)]",
+      "section_title": "text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] mb-3",
+      "field_row": "flex items-start justify-between py-2",
+      "field_label": "text-sm text-[var(--text-tertiary)]",
+      "field_value": "text-sm text-[var(--text-primary)] text-right",
+      "notes": "Slides in from right. Overlay behind. Close on Escape. Sticky header. Sections with field rows for metadata display."
+    },
+    "onboarding_checklist": {
+      "container": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5",
+      "header": "flex items-center justify-between mb-4",
+      "title": "text-sm font-semibold text-[var(--text-primary)]",
+      "progress_text": "text-xs text-[var(--text-tertiary)] tabular-nums",
+      "progress_bar": "w-full h-1.5 rounded-full bg-[var(--bg-tertiary)] mb-4 overflow-hidden",
+      "progress_fill": "h-full rounded-full bg-[var(--accent)] transition-all duration-500",
+      "item": "flex items-center gap-3 py-2.5 group cursor-pointer",
+      "item_checkbox_done": "w-5 h-5 rounded-full bg-[var(--success)] flex items-center justify-center text-white shrink-0",
+      "item_checkbox_pending": "w-5 h-5 rounded-full border-2 border-[var(--border)] group-hover:border-[var(--accent)] transition-colors duration-100 shrink-0",
+      "item_text_done": "text-sm text-[var(--text-tertiary)] line-through",
+      "item_text_pending": "text-sm text-[var(--text-primary)]",
+      "notes": "Use for user onboarding, setup wizards, getting-started flows. Progress bar at top. Completed items get green check + strikethrough."
+    },
+    "metric_chart_card": {
+      "container": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5",
+      "header": "flex items-center justify-between mb-4",
+      "title": "text-sm font-semibold text-[var(--text-primary)]",
+      "period_selector": "flex items-center gap-1 text-xs",
+      "period_btn": "px-2 py-1 rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors duration-100",
+      "period_btn_active": "px-2 py-1 rounded text-[var(--text-primary)] bg-[var(--bg-tertiary)] font-medium",
+      "chart_area": "h-48",
+      "legend": "flex items-center gap-4 mt-3",
+      "legend_item": "flex items-center gap-1.5 text-xs text-[var(--text-tertiary)]",
+      "legend_dot": "w-2 h-2 rounded-full",
+      "notes": "Card with title, period selector (7d/30d/90d), chart, and legend. Chart area is h-48 standard. Use Recharts or Chart.js. Legend below chart, not inside."
+    },
+    "key_value_list": {
+      "description": "Metadata display in two columns. Used in detail pages, sidebars, settings.",
+      "container": "space-y-3",
+      "row": "flex items-start justify-between gap-4",
+      "label": "text-sm text-[var(--text-tertiary)] shrink-0",
+      "value": "text-sm text-[var(--text-primary)] text-right",
+      "value_link": "text-sm text-[var(--accent)] hover:text-[var(--accent-hover)] text-right cursor-pointer",
+      "divider": "h-px bg-[var(--border-subtle)]",
+      "notes": "Label left, value right. Use for: assignee, due date, priority, status, created date. Values can be badges, links, or plain text."
+    },
+    "filter_bar": {
+      "container": "flex items-center gap-2 flex-wrap",
+      "filter_btn": "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-tertiary)] transition-colors duration-100 cursor-pointer",
+      "filter_btn_active": "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm border border-[var(--accent)] bg-[var(--accent-muted)] text-[var(--accent)] cursor-pointer",
+      "filter_count": "w-4 h-4 rounded-full bg-[var(--accent)] text-white text-[10px] flex items-center justify-center",
+      "clear_all": "text-xs text-[var(--accent)] hover:text-[var(--accent-hover)] cursor-pointer ml-2",
+      "notes": "Horizontal row of filter buttons. Active filters show accent styling + count. Clear all link when any filter is active."
+    },
+    "data_list": {
+      "description": "Vertical list of items. Alternative to data_table for simpler content or mobile.",
+      "container": "divide-y divide-[var(--border-subtle)]",
+      "item": "flex items-center gap-4 py-3 px-4 hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer",
+      "item_icon": "w-10 h-10 rounded-lg bg-[var(--bg-tertiary)] flex items-center justify-center shrink-0",
+      "item_content": "flex-1 min-w-0",
+      "item_title": "text-sm font-medium text-[var(--text-primary)] truncate",
+      "item_description": "text-xs text-[var(--text-tertiary)] truncate mt-0.5",
+      "item_meta": "flex items-center gap-2 shrink-0",
+      "notes": "Use when items have icon + title + description. Simpler than table. Good for file lists, notification lists, search results."
+    },
+    "inline_edit": {
+      "display": "px-1.5 py-0.5 -mx-1.5 rounded text-sm text-[var(--text-primary)] hover:bg-[var(--surface-hover)] cursor-pointer transition-colors duration-100 border border-transparent",
+      "editing": "px-1.5 py-0.5 -mx-1.5 rounded text-sm text-[var(--text-primary)] bg-[var(--bg-tertiary)] border border-[var(--accent)] outline-none",
+      "notes": "Click text to enter edit mode. Enter to save. Escape to cancel. Subtle bg change shows editable. Used for task titles, entity names, etc."
+    }
+  },
+  "page_layouts": {
+    "_instructions": "Each page type has a structural skeleton. The model picks the right layout per page and fills in content. These cover EVERY app type: SaaS, e-commerce, CRM, booking, messaging, marketplace, analytics, help desk, LMS, inventory, social.",
+    "dashboard_overview": {
+      "description": "Main dashboard landing page. Works for: SaaS admin, e-commerce, CRM, analytics, help desk, inventory.",
+      "structure": [
+        "Header: page title + optional date range selector or global search",
+        "Stat row: 3-4 stat_cards (grid-cols-2 lg:grid-cols-4 gap-4)",
+        "Primary content: main entity table OR metric chart (60% of remaining space)",
+        "Secondary content: activity feed, quick actions, or secondary chart (40%)"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 p-6 space-y-6 overflow-auto",
+        "stat_grid": "grid grid-cols-2 lg:grid-cols-4 gap-4",
+        "main_content": "grid grid-cols-1 xl:grid-cols-3 gap-6",
+        "primary_area": "xl:col-span-2",
+        "secondary_area": "xl:col-span-1"
+      },
+      "responsive": {
+        "mobile": "stat_grid becomes grid-cols-2, main_content becomes single column, secondary stacks below",
+        "tablet": "stat_grid stays grid-cols-2, main_content uses 2/3 + 1/3"
+      },
+      "notes": "Hierarchy: stats top, primary dominates, secondary supplemental. Never a flat grid of identical cards."
+    },
+    "entity_list": {
+      "description": "List/table page for any entity. Works for: tasks, contacts, orders, tickets, students, products, invoices, bookings.",
+      "structure": [
+        "Header: entity name + 'Create New' primary button",
+        "Toolbar: search input left + filter buttons center + view toggle (list/grid) right",
+        "Data table OR card grid",
+        "Pagination at bottom"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 p-6 space-y-4 overflow-auto",
+        "toolbar": "flex items-center justify-between gap-4 flex-wrap",
+        "search_area": "flex items-center gap-2 flex-1 max-w-sm",
+        "filters": "flex items-center gap-2 flex-wrap",
+        "view_toggle": "flex items-center gap-1",
+        "content": "flex-1"
+      },
+      "responsive": {
+        "mobile": "toolbar stacks vertically, search full-width, filters horizontal scroll, table becomes card list",
+        "tablet": "toolbar wraps at filters"
+      },
+      "notes": "Search always left. Filters beside search. Create button always top-right. Table for data-dense views, cards for visual content. ALWAYS include empty state."
+    },
+    "entity_detail": {
+      "description": "Single entity detail page. Works for: task detail, contact profile, order detail, ticket view, product page, booking detail.",
+      "structure": [
+        "Breadcrumb: parent list > entity name",
+        "Title header: name + status badge + action buttons (edit, delete, share)",
+        "Two-column: main content (2/3) + metadata sidebar (1/3)",
+        "Main: description, subtasks/line items, comments, activity timeline",
+        "Sidebar: key-value metadata (assignee, dates, priority, labels)"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 p-6 overflow-auto",
+        "title_row": "flex items-start justify-between gap-4 mb-6",
+        "title_area": "flex-1 min-w-0",
+        "title": "text-xl font-semibold text-[var(--text-primary)] tracking-tight",
+        "title_meta": "flex items-center gap-2 mt-1",
+        "actions": "flex items-center gap-2 shrink-0",
+        "content_grid": "grid grid-cols-1 lg:grid-cols-3 gap-6",
+        "main_column": "lg:col-span-2 space-y-6",
+        "sidebar_column": "space-y-4"
+      },
+      "responsive": {
+        "mobile": "single column, sidebar collapses to horizontal sections below main content",
+        "tablet": "sidebar moves below on medium screens"
+      },
+      "notes": "Sidebar metadata uses key_value_list recipe. Main content sections separated by cards or subtle dividers. Comments at bottom of main column."
+    },
+    "settings": {
+      "description": "Settings or profile page. Works for: account settings, team settings, billing, integrations, notification preferences.",
+      "structure": [
+        "Page title ('Settings')",
+        "Sidebar navigation (tabs) for sections OR horizontal tabs",
+        "Form content: single column, max-w-2xl, grouped sections",
+        "Each section: heading + description + form fields",
+        "Save button at section bottom or sticky footer"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 overflow-auto",
+        "settings_layout": "flex",
+        "settings_nav": "w-48 shrink-0 p-6 border-r border-[var(--border)]",
+        "settings_nav_item": "block px-3 py-2 rounded-md text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors duration-100 cursor-pointer",
+        "settings_nav_active": "block px-3 py-2 rounded-md text-sm text-[var(--text-primary)] bg-[var(--accent-muted)] font-medium",
+        "settings_content": "flex-1 p-6",
+        "form_container": "max-w-2xl space-y-8",
+        "section": "space-y-4 pb-6 border-b border-[var(--border)]",
+        "section_header": "space-y-1",
+        "section_title": "text-base font-semibold text-[var(--text-primary)]",
+        "section_description": "text-sm text-[var(--text-tertiary)]",
+        "field_grid": "grid grid-cols-1 sm:grid-cols-2 gap-4"
+      },
+      "responsive": {
+        "mobile": "settings nav becomes horizontal tabs above content, form goes full-width"
+      },
+      "notes": "max-w-2xl for forms. Left nav for 5+ sections. Horizontal tabs for 2-4 sections. Group related fields. Save per-section or global save."
+    },
+    "auth_login": {
+      "description": "Login page. Also covers: signup, forgot password, email verification, 2FA.",
+      "structure": [
+        "Full viewport centered layout",
+        "Card: logo/app name, form fields, submit button",
+        "Optional: social login, divider, alternative action link"
+      ],
+      "layout_classes": {
+        "page_wrapper": "min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-4",
+        "card": "w-full max-w-sm space-y-6",
+        "logo_area": "text-center space-y-2",
+        "form": "space-y-4",
+        "divider": "flex items-center gap-4 text-xs text-[var(--text-muted)]",
+        "divider_line": "flex-1 h-px bg-[var(--border)]",
+        "footer_text": "text-center text-sm text-[var(--text-tertiary)]",
+        "footer_link": "text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors duration-100"
+      },
+      "notes": "max-w-sm. Minimal or no visible card border. Background is bg-primary. Social login buttons below form with 'or continue with' divider."
+    },
+    "kanban_board": {
+      "description": "Kanban/board view. Works for: task boards, sales pipelines, recruitment stages, content workflows.",
+      "structure": [
+        "Header: board title + view toggle (list/board) + create button",
+        "Horizontal scrolling container with columns",
+        "Each column: header (title + count) + card list + add button"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 flex flex-col overflow-hidden",
+        "board_header": "flex items-center justify-between px-6 py-4",
+        "board_container": "flex-1 overflow-x-auto px-6 pb-6",
+        "columns_wrapper": "flex gap-4 h-full items-start"
+      },
+      "responsive": {
+        "mobile": "columns stack vertically, board becomes a single-column list with collapsible sections"
+      },
+      "notes": "Board takes full remaining height. Columns scroll horizontally. Use kanban_column recipe. Mobile: switch to list view automatically."
+    },
+    "landing_page": {
+      "description": "Marketing/landing page. Works for: product homepage, feature pages, company pages.",
+      "structure": [
+        "Navbar: logo left, nav links center, CTA button right",
+        "Hero: large heading + subheading + CTA button(s)",
+        "Social proof: logos row or stat counter",
+        "Features: 3 features in a grid (icon + title + description)",
+        "Testimonials or metrics section",
+        "CTA section: repeat main call to action",
+        "Footer: link columns + copyright"
+      ],
+      "layout_classes": {
+        "navbar": "flex items-center justify-between px-6 py-4 max-w-7xl mx-auto",
+        "hero_section": "max-w-4xl mx-auto text-center py-24 px-4",
+        "hero_heading": "text-5xl font-bold tracking-tighter leading-tight text-[var(--text-primary)]",
+        "hero_sub": "text-lg text-[var(--text-secondary)] mt-4 max-w-2xl mx-auto leading-relaxed",
+        "hero_cta_group": "flex items-center justify-center gap-4 mt-8",
+        "social_proof": "flex items-center justify-center gap-8 py-8 opacity-50",
+        "features_grid": "grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4 py-20",
+        "feature_card": "space-y-3",
+        "feature_icon": "w-10 h-10 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center text-[var(--accent)]",
+        "feature_title": "text-base font-semibold text-[var(--text-primary)]",
+        "feature_desc": "text-sm text-[var(--text-secondary)] leading-relaxed",
+        "testimonial_section": "max-w-4xl mx-auto px-4 py-20",
+        "testimonial_card": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6",
+        "testimonial_text": "text-base text-[var(--text-primary)] leading-relaxed italic",
+        "testimonial_author": "flex items-center gap-3 mt-4",
+        "cta_section": "text-center py-20 px-4",
+        "footer": "border-t border-[var(--border)] py-12 px-4 max-w-6xl mx-auto",
+        "footer_grid": "grid grid-cols-2 md:grid-cols-4 gap-8",
+        "footer_heading": "text-sm font-semibold text-[var(--text-primary)] mb-3",
+        "footer_link": "text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors duration-100 block py-1"
+      },
+      "notes": "max-w-7xl navbar, max-w-4xl hero, max-w-6xl content. Hero text-5xl minimum. Social proof logos at 50% opacity. Testimonials are real quotes from real people (use realistic sample data)."
+    },
+    "contact_form": {
+      "description": "Contact or inquiry page. Also covers: support forms, feedback forms, application forms.",
+      "structure": [
+        "Two-column: form left (3/5), contact info right (2/5)",
+        "OR single-column centered (max-w-xl)",
+        "Form: name, email, subject, message, submit",
+        "Info: email, phone, address, hours, social links"
+      ],
+      "layout_classes": {
+        "page_wrapper": "min-h-screen flex items-center justify-center px-4 py-20 bg-[var(--bg-primary)]",
+        "container": "w-full max-w-4xl grid grid-cols-1 lg:grid-cols-5 gap-12",
+        "form_column": "lg:col-span-3 space-y-6",
+        "info_column": "lg:col-span-2 space-y-8",
+        "info_item": "space-y-1",
+        "info_label": "text-sm font-medium text-[var(--text-primary)]",
+        "info_value": "text-sm text-[var(--text-secondary)]"
+      },
+      "notes": "Form never full-width. Submit button full-width within form. Include success state after submission (swap form for thank-you message)."
+    },
+    "pricing_page": {
+      "description": "Pricing tiers. Also covers: plan comparison, upgrade flow.",
+      "structure": [
+        "Centered heading + subheading",
+        "Optional billing toggle (monthly/annual)",
+        "3 plan cards \u2014 middle one highlighted as recommended",
+        "Each card: name, price, description, feature list, CTA",
+        "FAQ section below"
+      ],
+      "layout_classes": {
+        "page_wrapper": "py-20 px-4",
+        "header": "text-center max-w-2xl mx-auto mb-12",
+        "toggle": "flex items-center justify-center gap-3 mb-8",
+        "cards_grid": "grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto",
+        "faq_section": "max-w-2xl mx-auto mt-20",
+        "faq_item": "border-b border-[var(--border)] py-4",
+        "faq_question": "text-sm font-medium text-[var(--text-primary)] cursor-pointer flex items-center justify-between",
+        "faq_answer": "text-sm text-[var(--text-secondary)] mt-2 leading-relaxed"
+      },
+      "notes": "Use pricing_card recipe. Monthly/Annual toggle uses toggle_switch. FAQ items are collapsible accordions."
+    },
+    "inbox_messaging": {
+      "description": "Messaging/inbox view. Works for: DMs, support tickets, email client, team chat.",
+      "structure": [
+        "Three-column: conversation list (w-80) + message thread (flex-1) + optional detail panel",
+        "List: search + conversation previews with avatar, name, last message, timestamp",
+        "Thread: header (contact info) + messages + input area",
+        "Detail: contact metadata, shared files, actions"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 flex overflow-hidden",
+        "conversation_list": "w-80 border-r border-[var(--border)] flex flex-col overflow-hidden",
+        "list_header": "p-4 border-b border-[var(--border)]",
+        "list_search": "mb-0",
+        "list_items": "flex-1 overflow-y-auto",
+        "list_item": "flex gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] cursor-pointer border-b border-[var(--border-subtle)] transition-colors duration-100",
+        "list_item_active": "flex gap-3 px-4 py-3 bg-[var(--accent-muted)] cursor-pointer border-b border-[var(--border-subtle)]",
+        "list_item_unread": "flex gap-3 px-4 py-3 hover:bg-[var(--surface-hover)] cursor-pointer border-b border-[var(--border-subtle)] font-medium",
+        "message_area": "flex-1 flex flex-col overflow-hidden",
+        "message_header": "h-14 flex items-center justify-between px-6 border-b border-[var(--border)]",
+        "message_thread": "flex-1 overflow-y-auto px-6 py-4",
+        "message_input": "border-t border-[var(--border)] p-4"
+      },
+      "responsive": {
+        "mobile": "conversation list is full-width, click opens thread as separate view with back button"
+      },
+      "notes": "Three-column layout. Conversation list scrolls independently. Active conversation highlighted. Unread conversations bolded with dot. Use chat_message recipe for bubbles."
+    },
+    "calendar_view": {
+      "description": "Calendar page. Works for: scheduling, booking, event management, availability.",
+      "structure": [
+        "Header: month/week/day toggle + navigation arrows + today button + create event",
+        "Month grid OR week view OR day view",
+        "Event details in sidebar or modal on click"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 flex flex-col overflow-hidden",
+        "calendar_header": "flex items-center justify-between px-6 py-4 border-b border-[var(--border)]",
+        "calendar_nav": "flex items-center gap-2",
+        "calendar_title": "text-lg font-semibold text-[var(--text-primary)] min-w-[200px]",
+        "month_grid": "flex-1 grid grid-cols-7",
+        "weekday_header": "py-2 text-center text-xs font-medium uppercase tracking-wider text-[var(--text-tertiary)] border-b border-[var(--border)]",
+        "day_cell": "min-h-[100px] border-r border-b border-[var(--border)] p-1.5"
+      },
+      "notes": "Use calendar_cell recipe for day cells. Week/day views show time slots on left axis. Events are color-coded by category. Click event opens detail."
+    },
+    "analytics_dashboard": {
+      "description": "Data-heavy analytics page. Works for: marketing analytics, financial reports, usage metrics, monitoring.",
+      "structure": [
+        "Header: date range picker + comparison toggle + export button",
+        "Top row: 4-6 stat cards with sparklines",
+        "Main chart: large area/line chart spanning full width",
+        "Secondary row: 2-3 smaller charts (bar, pie, table)",
+        "Detailed breakdown table at bottom"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 p-6 space-y-6 overflow-auto",
+        "controls_row": "flex items-center justify-between gap-4 flex-wrap",
+        "stat_grid": "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4",
+        "main_chart": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5",
+        "chart_grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+        "chart_card": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5"
+      },
+      "notes": "Data-dense layout. Stats can go up to 6 across. Main chart is full-width and taller (h-64). Use metric_chart_card for secondary charts. All numbers use tabular-nums. Date range picker top-right."
+    },
+    "profile_page": {
+      "description": "User or public profile. Works for: user profiles, company profiles, team member pages, portfolio.",
+      "structure": [
+        "Cover/banner area (optional, h-32 to h-48)",
+        "Profile header: avatar (xl) + name + title/role + action buttons",
+        "Tab navigation: Overview, Activity, Projects, etc.",
+        "Tab content area"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 overflow-auto",
+        "cover": "h-32 bg-[var(--bg-tertiary)]",
+        "profile_header": "max-w-4xl mx-auto px-6 -mt-10 flex items-end gap-4 mb-6",
+        "profile_avatar": "w-20 h-20 rounded-full border-4 border-[var(--bg-primary)] bg-[var(--bg-tertiary)] flex items-center justify-center text-2xl font-semibold text-[var(--text-secondary)] shrink-0",
+        "profile_info": "flex-1 pt-12",
+        "profile_name": "text-xl font-semibold text-[var(--text-primary)]",
+        "profile_title": "text-sm text-[var(--text-secondary)]",
+        "profile_actions": "flex gap-2 pt-12",
+        "content_area": "max-w-4xl mx-auto px-6"
+      },
+      "notes": "Avatar overlaps cover by -mt-10. Name and actions on same horizontal line. Tab content scrolls below fixed profile header."
+    },
+    "checkout_page": {
+      "description": "Checkout/payment page. Works for: e-commerce checkout, subscription purchase, donation.",
+      "structure": [
+        "Two-column: form left (3/5), order summary right (2/5)",
+        "Form sections: contact, shipping, payment",
+        "Order summary: line items, subtotal, tax, total, apply coupon",
+        "Submit: 'Place order' or 'Subscribe' button"
+      ],
+      "layout_classes": {
+        "page_wrapper": "min-h-screen bg-[var(--bg-primary)] py-12 px-4",
+        "container": "max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8",
+        "form_column": "lg:col-span-3 space-y-6",
+        "summary_column": "lg:col-span-2",
+        "summary_card": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-5 sticky top-6",
+        "line_item": "flex items-center justify-between py-2 text-sm",
+        "line_item_name": "text-[var(--text-primary)]",
+        "line_item_price": "text-[var(--text-primary)] tabular-nums",
+        "divider": "h-px bg-[var(--border)] my-3",
+        "total_row": "flex items-center justify-between py-2 text-base font-semibold text-[var(--text-primary)]"
+      },
+      "notes": "Order summary is sticky on scroll. Stepper at top (Contact > Shipping > Payment). Total always visible. Security badges near payment fields."
+    },
+    "file_manager": {
+      "description": "File/document manager. Works for: drive, media library, asset manager, document hub.",
+      "structure": [
+        "Header: breadcrumb path + view toggle (grid/list) + upload button",
+        "Toolbar: search + sort + filter by type",
+        "Grid of file cards OR list view",
+        "File detail panel (sidebar_detail) on click"
+      ],
+      "layout_classes": {
+        "page_wrapper": "flex-1 p-6 space-y-4 overflow-auto",
+        "breadcrumb_path": "flex items-center gap-1.5 text-sm text-[var(--text-tertiary)] mb-4",
+        "file_grid": "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4",
+        "file_card": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 hover:border-[var(--accent)] transition-colors duration-150 cursor-pointer group",
+        "file_preview": "aspect-square rounded-md bg-[var(--bg-tertiary)] flex items-center justify-center mb-2 overflow-hidden",
+        "file_icon": "w-10 h-10 text-[var(--text-muted)]",
+        "file_name": "text-xs font-medium text-[var(--text-primary)] truncate",
+        "file_meta": "text-[10px] text-[var(--text-tertiary)] mt-0.5",
+        "file_selected": "rounded-lg border-2 border-[var(--accent)] bg-[var(--accent-muted)] p-3"
+      },
+      "notes": "Grid default, list for dense view. Drag-and-drop for organizing. Multi-select with shift/cmd-click. Right-click context menu. Preview images inline, show file type icon for others."
+    },
+    "onboarding_flow": {
+      "description": "Multi-step onboarding or setup wizard. Works for: user onboarding, team setup, integration setup.",
+      "structure": [
+        "Full-screen or max-w-lg centered",
+        "Progress stepper at top",
+        "Step content: form fields or selection cards",
+        "Navigation: Back + Next/Finish buttons",
+        "Optional skip link"
+      ],
+      "layout_classes": {
+        "page_wrapper": "min-h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] px-4 py-12",
+        "container": "w-full max-w-lg space-y-8",
+        "step_content": "space-y-6",
+        "selection_grid": "grid grid-cols-2 gap-3",
+        "selection_card": "rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 cursor-pointer hover:border-[var(--accent)] transition-colors duration-150 text-center",
+        "selection_card_selected": "rounded-lg border-2 border-[var(--accent)] bg-[var(--accent-muted)] p-4 cursor-pointer text-center",
+        "nav_row": "flex items-center justify-between mt-8",
+        "skip_link": "text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] cursor-pointer"
+      },
+      "notes": "Use stepper recipe at top. Each step is self-contained. Selection cards for choices (plan type, role, interests). Progress saves between steps."
+    },
+    "error_pages": {
+      "description": "Error states: 404, 500, 403, maintenance.",
+      "layout_classes": {
+        "page_wrapper": "min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-4",
+        "container": "text-center max-w-sm space-y-4",
+        "error_code": "text-6xl font-bold text-[var(--text-muted)] tracking-tighter",
+        "title": "text-xl font-semibold text-[var(--text-primary)]",
+        "description": "text-sm text-[var(--text-tertiary)]",
+        "actions": "flex items-center justify-center gap-3 mt-6"
+      },
+      "notes": "Centered, minimal. Large error code number. Brief explanation. Primary action: 'Go home'. Secondary: 'Go back'. No cute illustrations \u2014 keep it clean."
+    }
+  },
+  "responsive_rules_app": {
+    "_instructions": "Every layout MUST follow these breakpoint rules. The model applies them to every page.",
+    "breakpoints": {
+      "mobile": "< 640px (sm)",
+      "tablet": "640px - 1024px (md/lg)",
+      "desktop": "1024px+ (lg/xl)"
+    },
+    "rules": [
+      "Sidebar: hidden on mobile, show hamburger menu button in header. Sidebar slides in as overlay drawer.",
+      "Stat grids: 2 columns on mobile, 4 on desktop. Never 1 column \u2014 too much vertical scroll.",
+      "Content grids (2/3 + 1/3): single column on mobile, sidebar content stacks below.",
+      "Data tables: horizontal scroll on mobile with sticky first column. OR switch to card list view.",
+      "Modals: full-width on mobile (max-w-full, rounded-none on bottom), centered on desktop.",
+      "Kanban: stack columns vertically on mobile, horizontal scroll on tablet+.",
+      "Forms: single column on mobile, 2-column grid for short fields on desktop.",
+      "Navigation: bottom tab bar on mobile for primary nav (max 5 items), sidebar on desktop.",
+      "Touch targets: minimum 44px height for all interactive elements on mobile.",
+      "Font sizes: don't scale down below text-sm (14px) on any screen size.",
+      "Padding: p-4 on mobile, p-6 on desktop for page wrappers.",
+      "Landing page hero: text-3xl on mobile, text-5xl on desktop."
+    ]
+  },
+  "interaction_patterns": {
+    "_instructions": "Standard interaction behaviors that every app must implement. These are not optional.",
+    "patterns": [
+      {
+        "name": "optimistic_updates",
+        "description": "When user creates/updates/deletes, update the UI immediately before the server confirms. Show a subtle undo toast if the action might be accidental.",
+        "applies_to": "toggle switches, checkbox changes, drag-and-drop reorder, inline edits"
+      },
+      {
+        "name": "loading_states",
+        "description": "Every data fetch has three states: loading (skeleton), success (data), error (alert with retry button). Never show a blank page.",
+        "applies_to": "every page, every data component"
+      },
+      {
+        "name": "keyboard_navigation",
+        "description": "All interactive elements accessible via Tab. Enter/Space to activate buttons. Escape to close modals/dropdowns. Arrow keys in lists and menus.",
+        "applies_to": "buttons, links, inputs, modals, dropdowns, menus, tabs"
+      },
+      {
+        "name": "debounced_search",
+        "description": "Search inputs debounce by 300ms before firing a request. Show a subtle spinner in the input while loading. Clear button appears when input has value.",
+        "applies_to": "search bars, filter inputs, autocomplete"
+      },
+      {
+        "name": "infinite_scroll_or_pagination",
+        "description": "Lists with >20 items must paginate or infinite scroll. Show 'Loading more...' indicator at bottom for infinite scroll. Never load all data at once.",
+        "applies_to": "entity lists, activity feeds, search results, comment threads"
+      },
+      {
+        "name": "confirmation_before_destructive",
+        "description": "Delete, remove, revoke, and disconnect actions always show a confirmation dialog. The confirm button names the action ('Delete project') not just 'Confirm'.",
+        "applies_to": "delete buttons, remove members, revoke access, disconnect integrations"
+      },
+      {
+        "name": "form_submission_feedback",
+        "description": "Submit button shows loading state during save. On success: toast notification + redirect or inline update. On error: inline error messages per field + top-level alert if server error.",
+        "applies_to": "all forms"
+      },
+      {
+        "name": "relative_timestamps",
+        "description": "All timestamps show relative format by default ('2 hours ago', 'Yesterday'). Full date on hover tooltip. Use a consistent library (date-fns formatDistanceToNow).",
+        "applies_to": "activity feeds, comments, messages, audit logs, updated_at fields"
+      },
+      {
+        "name": "copy_to_clipboard",
+        "description": "IDs, URLs, API keys, codes \u2014 show a copy button. On click: copy to clipboard + show 'Copied!' tooltip for 2 seconds.",
+        "applies_to": "reference IDs, share links, API keys, invite codes"
+      }
+    ]
+  },
+  "data_visualization_rules": {
+    "_instructions": "Rules for any chart, graph, or data visualization component.",
+    "rules": [
+      "Use the design system accent color as the primary chart color. Use text-tertiary for grid lines and axes.",
+      "Chart backgrounds are transparent (inherit from card bg). Never add a separate bg color to charts.",
+      "Always show a loading skeleton while chart data loads. Never show an empty chart area.",
+      "Axes labels use text-xs text-[var(--text-tertiary)]. Tick values use tabular-nums.",
+      "Tooltips on hover showing exact values. Format numbers with locale-appropriate separators.",
+      "Legends go below the chart, not inside. Use small colored squares (w-2 h-2), not circles.",
+      "Line charts: 2px stroke, no fill by default. Area charts: 10-15% opacity fill.",
+      "Bar charts: rounded-t-sm on bars. 60% width relative to category spacing.",
+      "Pie/donut charts: max 6 segments. Group small segments into 'Other'.",
+      "Derive display range from data (min/max of actual values), never hardcode date offsets.",
+      "Period selectors (7d/30d/90d) go in the card header, right-aligned.",
+      "Comparison mode: current period as solid line, previous period as dashed line at 50% opacity."
+    ]
+  },
+  "css_base": {
+    "_instructions": "This CSS is injected into globals.css during scaffold. Sets up variables, resets, and base typography.",
+    "template": "@import url('https://fonts.googleapis.com/css2?family={{heading_font}}:wght@400;600;700&family={{body_font}}:wght@400;500;600&family={{mono_font}}:wght@400;500&display=swap');\n\n:root {\n  {{css_variables}}\n  --font-heading: '{{heading_font}}', serif;\n  --font-body: '{{body_font}}', sans-serif;\n  --font-mono: '{{mono_font}}', monospace;\n  --radius-sm: 0.375rem;\n  --radius-md: 0.5rem;\n  --radius-lg: 0.75rem;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nhtml {\n  font-family: var(--font-body);\n  color: var(--text-primary);\n  background: var(--bg-primary);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n\nh1, h2, h3, h4, h5, h6 {\n  font-family: var(--font-heading);\n}\n\ncode, pre, kbd {\n  font-family: var(--font-mono);\n}\n\n::selection {\n  background: var(--accent-muted);\n  color: var(--text-primary);\n}\n\n:focus-visible {\n  outline: 2px solid var(--accent);\n  outline-offset: 2px;\n}\n\n/* Scrollbar */\n::-webkit-scrollbar {\n  width: 6px;\n  height: 6px;\n}\n::-webkit-scrollbar-track {\n  background: transparent;\n}\n::-webkit-scrollbar-thumb {\n  background: var(--border);\n  border-radius: 3px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: var(--text-muted);\n}\n\n/* Smooth scroll */\nhtml {\n  scroll-behavior: smooth;\n}\n\n/* Reduced motion */\n@media (prefers-reduced-motion: reduce) {\n  *, *::before, *::after {\n    animation-duration: 0.01ms !important;\n    animation-iteration-count: 1 !important;\n    transition-duration: 0.01ms !important;\n  }\n}"
+  },
+  "slop_scan_patterns_design": {
+    "_instructions": "Post-build regex patterns to detect AI design slop. Used by _scan_design_quality() in WiringAgent.",
+    "patterns": [
+      {
+        "name": "raw_tailwind_colors",
+        "regex": "(?:bg|text|border|ring|shadow)-(?:gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\d{2,3}",
+        "severity": "high",
+        "message": "Uses raw Tailwind color instead of design system CSS variable",
+        "exceptions": [
+          "emerald-500/10",
+          "amber-500/10",
+          "red-500/10"
+        ]
+      },
+      {
+        "name": "heavy_shadows",
+        "regex": "shadow-(?:lg|xl|2xl)",
+        "severity": "medium",
+        "message": "Uses heavy shadow. Only modal, toast, dropdown, and command palette should use shadow-lg/xl",
+        "exceptions": [
+          "modal",
+          "dialog",
+          "toast",
+          "dropdown",
+          "popover",
+          "command",
+          "CommandPalette"
+        ]
+      },
+      {
+        "name": "over_rounded",
+        "regex": "rounded-(?:2xl|3xl|full)",
+        "severity": "low",
+        "message": "Uses excessive border radius. Max rounded-xl for modals, rounded-lg for cards",
+        "exceptions": [
+          "avatar",
+          "badge",
+          "pill",
+          "toggle",
+          "switch",
+          "Avatar",
+          "Badge",
+          "chat",
+          "ChatMessage"
+        ]
+      },
+      {
+        "name": "gradient_backgrounds",
+        "regex": "bg-gradient-to-",
+        "severity": "medium",
+        "message": "Uses gradient background on container. Prefer solid colors",
+        "exceptions": [
+          "hero",
+          "landing",
+          "cta",
+          "Hero",
+          "Landing",
+          "CTA"
+        ]
+      },
+      {
+        "name": "missing_transitions",
+        "regex": "hover:(?:bg|text|border|opacity)-[^\\s]+(?!.*transition)",
+        "severity": "low",
+        "message": "Has hover state without transition. Add transition-colors duration-150"
+      },
+      {
+        "name": "missing_loading_state",
+        "regex": "(?:useEffect|useSWR|useQuery|fetch\\()(?!.*(?:loading|isLoading|skeleton|Skeleton|pending|isPending))",
+        "severity": "high",
+        "message": "Data fetch without corresponding loading state. Every fetch needs a loading/skeleton state"
+      },
+      {
+        "name": "missing_error_state",
+        "regex": "(?:useEffect|useSWR|useQuery|fetch\\()(?!.*(?:error|isError|catch|Error|Alert))",
+        "severity": "high",
+        "message": "Data fetch without error handling. Every fetch needs an error state"
+      },
+      {
+        "name": "missing_empty_state",
+        "regex": "(?:\\.map\\(|Array\\.from)(?!.*(?:length|empty|Empty|no.*found|No.*found))",
+        "severity": "medium",
+        "message": "Array rendering without empty state check. Show a message when list has zero items"
+      },
+      {
+        "name": "hardcoded_date_offset",
+        "regex": "getDate\\(\\)\\s*[-+]\\s*\\d+|addDays\\(today|subDays\\(today|setDate\\(.*getDate.*[-+]",
+        "severity": "medium",
+        "message": "Hardcoded date offset detected. Derive display range from actual data"
+      },
+      {
+        "name": "missing_disabled_state",
+        "regex": "<button(?!.*disabled)",
+        "severity": "low",
+        "message": "Button without disabled prop handling. Add disabled:opacity-50 disabled:cursor-not-allowed"
+      },
+      {
+        "name": "non_accessible_click",
+        "regex": "onClick=\\{[^}]+\\}(?!.*(?:role=|button|Button|<a |<button))",
+        "severity": "medium",
+        "message": "onClick on non-button element without role='button'. Add role and keyboard handlers"
+      }
+    ]
+  },
+  "universal_conversion_rules": {
+    "_instructions": "These rules apply to EVERY public-facing page. The model must follow all of them regardless of product type, industry, or audience.",
+    "above_the_fold": [
+      "The visitor decides stay-or-bounce in under 5 seconds. The above-the-fold content must answer THREE questions instantly: What is this? Why should I care? What do I do next?",
+      "ONE headline. ONE subheadline. ONE primary CTA. That's it above the fold. No feature lists, no testimonials, no secondary content.",
+      "The headline must contain a SPECIFIC OUTCOME, not a feature. 'Ship 47% faster' not 'Project management tool'. 'Save 12 hours/week' not 'Automation platform'.",
+      "The CTA button text must complete the sentence 'I want to ___'. 'Start free trial' works. 'Submit' does not. 'Learn more' is weak. 'Get started' is generic.",
+      "If there's a secondary CTA, it must be VISUALLY subordinate (outline/ghost button) and LOWER commitment (watch demo, see pricing, read docs)."
+    ],
+    "page_structure": [
+      "Every page follows this emotional arc: PROMISE (hero) \u2192 PROOF (social proof / metrics) \u2192 MECHANISM (how it works / features) \u2192 OBJECTION HANDLING (risk reversal / FAQ) \u2192 ACTION (final CTA).",
+      "Never put features before proof. The visitor doesn't care how it works until they believe it works.",
+      "Every section must answer exactly ONE of: What is it? Why should I care? Does it actually work? Can I trust you? What do I do next?",
+      "If a section doesn't serve the conversion goal, remove it. Decorative sections (team photos, office pictures, mission statements) go on /about, not the landing page.",
+      "Repeat the CTA at least 3 times on a long page: after hero, after proof, and at the bottom. Same action, same button \u2014 just different surrounding context."
+    ],
+    "copy_rules": [
+      "Write for scanners, not readers. 80% of visitors never read body text. Headlines, subheadlines, button text, and bullet points are all they see.",
+      "One idea per sentence. One argument per section. One action per page.",
+      "Use 'you' and 'your', never 'we' or 'our' in headlines. The page is about the VISITOR, not the product. 'Your team will ship faster' not 'We help teams ship faster'.",
+      "Numbers beat adjectives. '47% faster' beats 'much faster'. '$29/mo' beats 'affordable'. '4 minutes' beats 'quick setup'. '2,400 teams' beats 'many companies'.",
+      "Concrete beats abstract. 'Import from Jira in one click' beats 'Easy migration'. 'See who's blocked before standup' beats 'Improve visibility'.",
+      "Short words beat long words. 'Start' not 'commence'. 'Fix' not 'remediate'. 'Ship' not 'deploy'. 'Fast' not 'expeditious'.",
+      "Remove every word that doesn't add meaning. 'Start your free trial today and see the difference' \u2192 'Start free trial'.",
+      "Headlines: 6-12 words max. Subheadlines: 15-25 words max. Body paragraphs: 2-3 sentences max. Bullet points: 1 sentence each.",
+      "Never use 'solution', 'leverage', 'synergy', 'cutting-edge', 'next-generation', 'world-class', 'robust', 'seamless', 'innovative', or 'revolutionary'. These words mean nothing."
+    ],
+    "visual_hierarchy": [
+      "Every page has exactly ONE primary visual weight. On a landing page, it's the hero headline. On a pricing page, it's the featured plan. On a signup page, it's the form.",
+      "Text size hierarchy: hero headline (text-5xl on desktop, text-3xl on mobile) > section headings (text-2xl) > card titles (text-lg) > body text (text-sm). Never violate this hierarchy.",
+      "Color draws attention. Use the accent color ONLY on: primary CTA buttons, active states, key metrics, and status badges. If everything is accented, nothing is.",
+      "Whitespace is structural. More space between sections than between elements within a section. Section gaps: 80-100px. Internal gaps: 16-24px.",
+      "Max content width: 1280px for full layouts, 960px for content areas, 640px for text-heavy sections, 480px for forms, 380px for auth pages. Text wider than 640px is unreadable."
+    ],
+    "social_proof_rules": [
+      "Social proof is not optional. Every public-facing page must include at least ONE form of social proof.",
+      "Specific beats generic. Always. '2,417 teams in 43 countries' beats 'Thousands of users worldwide'. A named person with a title beats an anonymous quote.",
+      "Testimonials must include: real name, job title, company name, and at least one specific outcome (number, timeframe, or measurable result).",
+      "Logo bars use 40-50% opacity. They're passive signals, not attention-grabbers. 5-7 logos max.",
+      "Metrics use tabular-nums font variant and large text (text-3xl to text-4xl). The number is the content \u2014 the label is secondary.",
+      "Place the first social proof element within the first 2 scroll-lengths of the page. Don't make the visitor scroll 5 sections before seeing proof."
+    ],
+    "trust_and_risk_reversal": [
+      "Every page with a conversion action (signup, purchase, contact) must include at least ONE risk-reversal element.",
+      "Risk reversal hierarchy (strongest to weakest): specific outcome guarantee ('if you don't save 5+ hours') > money-back guarantee ('30-day refund') > free trial ('14 days free') > no-commitment language ('cancel anytime').",
+      "Guarantees must be specific. 'Money-back guarantee' is medium strength. '30-day money-back, no questions, no forms, full refund' is strong.",
+      "Place risk-reversal near the final CTA \u2014 it handles the last objection before the visitor clicks.",
+      "Security badges (SOC 2, GDPR, SSL) go near payment forms and signup forms. They answer 'is this safe?' at the moment of commitment.",
+      "Trust signals include: company address, phone number, real team photos (on about page), established-since date, total customers, uptime stats."
+    ]
+  },
+  "landing_page_frameworks": {
+    "_instructions": "These are the universal conversion frameworks. Each is a psychological structure, NOT a specific layout. The model picks the framework based on the product's relationship to the visitor (are they aware of the problem? are they comparing options? are they ready to buy?) and fills in product-specific content. Every framework includes section-by-section psychology annotations so the model understands WHY each section exists.",
+    "authority_dominance": {
+      "name": "Authority and dominance",
+      "when_to_use": "When the product has existing traction (customers, metrics, recognizable logos). When the target buyer values security, reliability, and scale. Enterprise SaaS, B2B platforms, infrastructure tools, APIs, developer tools.",
+      "visitor_mindset": "Evaluating options. Needs confidence that this is the safe, proven choice.",
+      "psychology": "People follow authority. When a page signals that the biggest, most successful organizations already chose this, the visitor's brain shortcuts the decision. Cialdini's Authority Principle + social proof at scale.",
+      "section_flow": [
+        {
+          "section": "hero",
+          "purpose": "Establish dominance immediately",
+          "elements": [
+            "Live status badge: '[X,XXX]+ [customers/teams/companies] and counting' with animated dot \u2014 creates social proof + recency",
+            "Headline: outcome-focused, includes a number \u2014 frames the product as the obvious category leader",
+            "Subheadline: expands with scale/credibility \u2014 mentions combined customer value, team sizes, or industry authority",
+            "Primary CTA: low-risk entry \u2014 'Start free' with risk-removal micro-copy",
+            "Secondary CTA: even lower commitment \u2014 'Watch demo' or 'See pricing'"
+          ],
+          "psychology_notes": "The status badge triggers FOMO before the visitor reads a single word. The headline must make them think 'this is the one.' Two CTAs offer different commitment levels for different buyer readiness."
+        },
+        {
+          "section": "metrics_bar",
+          "purpose": "Anchor large numbers in the visitor's mind",
+          "elements": [
+            "3-4 metrics in a horizontal row",
+            "Categories: total usage/volume, reliability/uptime, customer count, key outcome metric",
+            "Each metric: large number (text-3xl tabular-nums) + small label (text-xs uppercase tracking-wide)"
+          ],
+          "psychology_notes": "Anchoring effect. Multiple large numbers hit simultaneously \u2014 the brain processes these as facts, not claims. '4.2M+ tasks completed' sounds like a platform, not a startup."
+        },
+        {
+          "section": "trust_signals",
+          "purpose": "Handle security/compliance objections before they form",
+          "elements": [
+            "Horizontal row of compliance badges or trust markers",
+            "Examples: SOC 2, GDPR, HIPAA, SSO/SAML, uptime SLA, encryption standards"
+          ],
+          "psychology_notes": "Enterprise buyers have a mental checklist. These badges preemptively check boxes. Position early so the visitor doesn't bounce thinking 'this won't pass our security review.'"
+        },
+        {
+          "section": "features",
+          "purpose": "Show mechanism (HOW it delivers the outcome)",
+          "elements": [
+            "3 features in a grid (icon + title + 1-2 sentences)",
+            "Each feature framed as OUTCOME not capability: 'Know exactly how fast your team ships' not 'Analytics dashboard'"
+          ],
+          "psychology_notes": "Rule of three. More than 3 creates decision fatigue. Each feature answers 'what's in it for me?' not 'what does it do?' The visitor doesn't care about features \u2014 they care about what features DO for them."
+        },
+        {
+          "section": "testimonial",
+          "purpose": "Third-party validation from a high-authority source",
+          "elements": [
+            "Single large quote from senior leader at recognizable company",
+            "Include: full name, title, company, team/company size",
+            "Quote must include a specific outcome: '34% velocity increase in the first month'"
+          ],
+          "psychology_notes": "One powerful testimonial from a high-status person converts better than 10 generic ones. The team size makes it credible \u2014 this person manages hundreds of people and chose your product."
+        },
+        {
+          "section": "final_cta",
+          "purpose": "Close with social proof + action",
+          "elements": [
+            "Headline restating customer count: 'Join [X,XXX]+ teams already [outcome]'",
+            "Same primary CTA as hero",
+            "Micro-copy with risk removal"
+          ],
+          "psychology_notes": "The customer count appears for the third time. Repetition creates familiarity. Familiarity creates trust. The CTA at the bottom catches visitors who scrolled the entire page and are now ready."
+        }
+      ]
+    },
+    "problem_agitation_solution": {
+      "name": "PAS \u2014 Problem, Agitation, Solution",
+      "when_to_use": "When the visitor is aware they have a problem but hasn't committed to a solution. When you're replacing a broken workflow, manual process, or hated competitor. Productivity tools, migration plays, process automation, anything fixing a known pain.",
+      "visitor_mindset": "Frustrated. Knows something is broken. Looking for confirmation that someone understands their pain.",
+      "psychology": "Meet the visitor where they are \u2014 in pain. Name the pain specifically. Make it worse by quantifying the cost. Then present relief. This works because it creates an emotional journey: recognition \u2192 anxiety \u2192 hope \u2192 action.",
+      "section_flow": [
+        {
+          "section": "problem",
+          "purpose": "Name the pain the visitor already feels",
+          "elements": [
+            "Headline in error/danger color: direct, confrontational, uses 'you/your'",
+            "3 pain points with X/cross icons in red",
+            "Each pain point: bold problem name + specific consequence with a NUMBER",
+            "Use the visitor's own language \u2014 words they'd use complaining to a colleague"
+          ],
+          "psychology_notes": "Pattern interrupt \u2014 most pages start with 'we're great!' Starting with problems is unexpected and creates engagement. The visitor thinks 'yes, that's exactly my problem' which builds instant trust. Naming specific pain with numbers shows you deeply understand their world."
+        },
+        {
+          "section": "agitation_bridge",
+          "purpose": "Make the pain more urgent and bridge to the solution",
+          "elements": [
+            "Transition headline as a 'what if' question or future-pacing statement",
+            "Optional: quantify the annual cost of the problem (hours wasted \u00d7 hourly rate = dollar amount)"
+          ],
+          "psychology_notes": "Questions force the brain to engage \u2014 it can't scan past a question. 'What if' creates possibility thinking, bridging from pain to hope. The cost calculation converts abstract frustration into concrete dollars."
+        },
+        {
+          "section": "solution",
+          "purpose": "Present relief \u2014 mirror each problem with a resolution",
+          "elements": [
+            "Headline in success/green color: 'Here's what changes.' or similar",
+            "3 solution points with checkmark icons in green",
+            "Each mirrors a pain point from above with the resolution + specific outcome metric",
+            "Same structure as problems: bold outcome + specific number"
+          ],
+          "psychology_notes": "Emotional release. After building tension with problems, the solution creates relief. Green signals safety/go. The mirrored structure (3 problems \u2192 3 solutions) creates cognitive closure \u2014 every pain has been addressed."
+        },
+        {
+          "section": "risk_reversal",
+          "purpose": "Eliminate the last objection: 'what if it doesn't work?'",
+          "elements": [
+            "Bordered card with guarantee headline + specific terms",
+            "Must be MORE specific than 'cancel anytime'",
+            "Best: outcome-based guarantee + personal service commitment"
+          ],
+          "psychology_notes": "The visitor is now emotionally convinced but rationally cautious. Risk reversal handles the rational brain. Specificity makes it believable \u2014 'we'll personally help you migrate back' is a commitment you wouldn't make if you weren't confident."
+        },
+        {
+          "section": "final_cta",
+          "purpose": "Action-oriented close with friction removal",
+          "elements": [
+            "Headline: transformation statement (problem state \u2192 solution state)",
+            "CTA button with outcome verb",
+            "Micro-copy: reduce perceived effort (setup time, import ease, no credit card)"
+          ],
+          "psychology_notes": "Micro-copy after the CTA handles 'but is it hard?' before the visitor can think it. Specific numbers (4 minutes, one click) are more credible than vague reassurance."
+        }
+      ]
+    },
+    "social_proof_wall": {
+      "name": "Social proof wall",
+      "when_to_use": "When you have many customers willing to speak. Consumer SaaS, community-driven products, marketplaces, products in crowded categories where the visitor is comparing several options. Also: when your product's value is hard to explain but easy to show through others' experiences.",
+      "visitor_mindset": "Comparing options. Wants to know 'do people like me use this? do they like it?'",
+      "psychology": "Herd mentality \u2014 the most primal conversion trigger. When humans see that many other humans made a choice, they assume it's the correct choice. Volume of proof overwhelms skepticism.",
+      "section_flow": [
+        {
+          "section": "hero",
+          "purpose": "Establish momentum with live social proof",
+          "elements": [
+            "Live counter badge: '[XX] [customers] signed up this [period]' with animated indicator",
+            "Headline: herd/bandwagon language \u2014 'The fastest-growing teams run on [product]'",
+            "Subheadline: name competitors being replaced \u2014 shows confidence",
+            "Single CTA: curiosity-driven \u2014 'See why teams switch'"
+          ],
+          "psychology_notes": "Live counter creates urgency without being pushy. Naming competitors targets search intent and shows you're not afraid of comparison."
+        },
+        {
+          "section": "logo_bar",
+          "purpose": "Passive authority from recognizable brands",
+          "elements": [
+            "5-7 company logos or names at 40% opacity",
+            "Horizontally centered"
+          ],
+          "psychology_notes": "Low-opacity logos are processed subconsciously. The visitor registers 'big companies use this' without feeling sold to."
+        },
+        {
+          "section": "testimonial_grid",
+          "purpose": "Volume of proof from diverse sources",
+          "elements": [
+            "4-6 testimonial cards in 2-column grid",
+            "Vary: job titles (CTO, PM, Designer, Eng Manager), company sizes (startup to enterprise), industries",
+            "Every quote must include at least one SPECIFIC outcome (number, timeframe, measurable result)",
+            "Include migration stories ('switched from X'), adoption stories ('entire team uses it'), outcome stories ('velocity went up Y%')"
+          ],
+          "psychology_notes": "Volume overwhelms skepticism. Diverse roles show cross-functional adoption. Specific outcomes make quotes believable \u2014 vague quotes ('love this tool!') feel fabricated."
+        },
+        {
+          "section": "outcome_metrics",
+          "purpose": "Hard data to satisfy the analytical brain",
+          "elements": [
+            "3 metrics: transformation metric, time-saved metric, adoption/satisfaction metric"
+          ],
+          "psychology_notes": "Testimonials are emotional (System 1). Metrics are rational (System 2). Together they satisfy both decision-making systems."
+        },
+        {
+          "section": "final_cta",
+          "purpose": "Herd close \u2014 make NOT buying feel like the odd choice",
+          "elements": [
+            "Headline: '[X,XXX] [customers] can't be wrong'",
+            "CTA: 'Join them' language"
+          ],
+          "psychology_notes": "'Can't be wrong' is a rhetorical challenge \u2014 the visitor would have to argue that thousands of people made a bad decision."
+        }
+      ]
+    },
+    "urgency_scarcity": {
+      "name": "Urgency and scarcity",
+      "when_to_use": "Product launches, seasonal promotions, products with clear ROI that can be quantified, paid acquisition funnels, retargeting campaigns, beta programs with limited spots.",
+      "visitor_mindset": "Interested but procrastinating. Needs a reason to act NOW instead of 'later' (which means never).",
+      "psychology": "Loss aversion is 2x stronger than gain motivation (Kahneman & Tversky). When people believe they might lose an opportunity, they act faster. Time pressure + cost of inaction + easy onboarding = conversion.",
+      "section_flow": [
+        {
+          "section": "urgency_banner",
+          "purpose": "Establish time pressure immediately",
+          "elements": [
+            "Full-width accent-colored banner at page top",
+            "Content: offer description + SPECIFIC deadline + inline CTA link",
+            "Must be a REAL deadline \u2014 fake urgency permanently destroys trust"
+          ],
+          "psychology_notes": "First thing seen. Creates a mental clock. Specific dates (April 10th) are more urgent than 'limited time' because they're concrete and the visitor can't rationalize 'I'll do it later.'"
+        },
+        {
+          "section": "hero",
+          "purpose": "Quantify the cost of inaction",
+          "elements": [
+            "Headline: frame as what they're LOSING, not what they'd gain",
+            "Subheadline: do the math \u2014 convert hours wasted to dollars burned per year",
+            "CTA: time-bound language",
+            "Micro-copy: reinforce deadline or offer terms"
+          ],
+          "psychology_notes": "Loss aversion. 'You're losing $62,400/year' hits harder than 'Save $62,400/year.' The math makes the loss concrete \u2014 abstract waste is easy to ignore, specific dollar amounts are not."
+        },
+        {
+          "section": "effort_reduction",
+          "purpose": "Make the action feel effortless",
+          "elements": [
+            "3-step numbered breakdown of onboarding/setup",
+            "Each step: title + one sentence",
+            "Include specific time ('4 minutes') and ease markers ('one-click')"
+          ],
+          "psychology_notes": "The #1 conversion blocker is perceived effort. Three steps with specific details makes adoption feel effortless. Odd numbers (3) feel more natural than even."
+        },
+        {
+          "section": "risk_reversal",
+          "purpose": "Remove the last rational objection",
+          "elements": [
+            "Guarantee with specific terms",
+            "Outcome-based if possible ('if you don't see results in X days')"
+          ],
+          "psychology_notes": "The visitor is now thinking 'but what if it doesn't work?' The guarantee answers this before they can talk themselves out of it."
+        },
+        {
+          "section": "final_cta",
+          "purpose": "Final urgency pulse",
+          "elements": [
+            "Headline: restate deadline",
+            "CTA: 'Lock in' or 'Claim' language \u2014 implies the offer might disappear",
+            "Micro-copy: restate guarantee"
+          ],
+          "psychology_notes": "'Lock in' implies scarcity. The visitor has seen the deadline 3 times now (banner, hero, CTA). The repetition creates genuine urgency."
+        }
+      ]
+    },
+    "competitor_comparison": {
+      "name": "Us vs. them \u2014 competitor takedown",
+      "when_to_use": "When there's a dominant incumbent the visitor is likely comparing you to. Products positioned as simpler/cheaper/better alternatives to Jira, Salesforce, HubSpot, Mailchimp, etc. Migration-focused positioning.",
+      "visitor_mindset": "Already using a competitor and unhappy. Googling '[competitor] alternative'. Knows what they want \u2014 needs proof you're better.",
+      "psychology": "Anchoring + contrast. By placing your product next to a known competitor, you anchor expectations to the competitor's weaknesses. Green checks vs. red X's create an instant visual verdict that bypasses analytical thinking.",
+      "section_flow": [
+        {
+          "section": "hero",
+          "purpose": "Acknowledge the competitor and validate the visitor's frustration",
+          "elements": [
+            "Headline: name the competitor. 'You already know [Competitor] is [problem]. Here's why teams switch.'",
+            "Subheadline: reframe value \u2014 same capabilities, less pain",
+            "Primary CTA: migration-focused \u2014 'Switch in under 5 minutes'",
+            "Secondary CTA: effort-reducing \u2014 'See migration guide'"
+          ],
+          "psychology_notes": "Naming the competitor is bold and builds instant trust. 'You already know' validates existing frustration. It says 'we understand you' before asking for anything."
+        },
+        {
+          "section": "comparison_table",
+          "purpose": "Visual side-by-side verdict",
+          "elements": [
+            "Two-column table: your product vs. named competitor",
+            "6-8 comparison rows: setup time, admin overhead, key features, price at specific scale",
+            "Your column: green checks, specific numbers, accent color for best row",
+            "Competitor column: red X's, worse values, muted text",
+            "Price row LAST \u2014 the knockout punch after feature parity is established"
+          ],
+          "psychology_notes": "The brain processes green-vs-red faster than reading text. The table feels objective even though it's biased toward you. Price last creates 'cherry on top' \u2014 after seeing you match on features, the price gap feels absurd."
+        },
+        {
+          "section": "migration_proof",
+          "purpose": "Prove the switch is real, safe, and beneficial",
+          "elements": [
+            "Testimonial from someone who migrated from the named competitor",
+            "Must include: team size, migration timeframe, outcome metric"
+          ],
+          "psychology_notes": "Handles 'what if migration is painful?' with a real story. Specific team size makes it credible. Short timeframe makes it feel easy."
+        },
+        {
+          "section": "risk_reversal",
+          "purpose": "Eliminate switching fear",
+          "elements": [
+            "Migration-specific guarantee: free migration, parallel running, full data export",
+            "'Keep your old tool running in parallel' is the key phrase \u2014 eliminates commitment fear"
+          ],
+          "psychology_notes": "Sunk cost fallacy keeps people on bad products. 'Run both in parallel' breaks the fallacy by removing the either-or framing. 'Nothing lost' directly counters loss aversion."
+        },
+        {
+          "section": "final_cta",
+          "purpose": "Price-anchored close",
+          "elements": [
+            "Headline: 'Stop paying more for less'",
+            "CTA: 'Start free migration'"
+          ],
+          "psychology_notes": "The price comparison is the final rational argument. 'Migration' not 'signup' frames the action as escaping, not adopting."
+        }
+      ]
+    }
+  },
+  "psychological_triggers": {
+    "_instructions": "Individual conversion psychology patterns usable on ANY page type. The model should incorporate 3-5 of these per landing page, chosen based on product and audience. These are universal \u2014 they work across all industries, products, and audiences.",
+    "anchoring": {
+      "what": "Present a high number before presenting your price or metric. The first number becomes the reference point.",
+      "how_to_apply": [
+        "Show competitor price BEFORE your price",
+        "Show cost-of-problem BEFORE product price",
+        "Show enterprise plan first in pricing pages, then Pro, then Starter",
+        "Show large usage numbers (4.2M tasks) to make the product feel massive",
+        "Show the 'before' metric (23 min wasted/hr) before the 'after' metric (4 min saved)"
+      ],
+      "placement": "Metrics rows, comparison tables, pricing pages, hero subheadlines"
+    },
+    "loss_aversion": {
+      "what": "People feel losses 2x more than equivalent gains. Frame value as what they're LOSING without you.",
+      "how_to_apply": [
+        "'You're losing $62,400/year' hits harder than 'Save $62,400/year'",
+        "'Your competitors ship 47% faster than you' > 'Ship 47% faster'",
+        "'Every day without [product], you lose [metric]' > 'With [product], you gain [metric]'",
+        "'Stop burning 12 hours/week' > 'Save 12 hours/week'",
+        "Show what happens if they do NOTHING \u2014 make inaction feel costly"
+      ],
+      "placement": "Hero headlines, PAS agitation sections, urgency banners, CTA micro-copy"
+    },
+    "social_proof_specificity": {
+      "what": "Specific social proof converts 3-4x better than generic. Names, titles, numbers, and outcomes.",
+      "how_to_apply": [
+        "GOOD: 'Sarah Kim, VP Engineering at ScaleAI (420 engineers)' \u2014 name, title, company, scale",
+        "BAD: 'A VP at a large tech company'",
+        "GOOD: '2,417 teams in 43 countries'",
+        "BAD: 'Teams worldwide'",
+        "GOOD: '142 teams signed up this week'",
+        "BAD: 'Join our growing community'",
+        "GOOD: 'Velocity increased 34% in the first month'",
+        "BAD: 'Significant improvement'"
+      ],
+      "placement": "Testimonials, metrics bars, hero badges, CTA headlines"
+    },
+    "risk_reversal": {
+      "what": "Remove the perceived risk of the decision. Stronger and more specific guarantees convert higher.",
+      "strength_hierarchy": [
+        "STRONGEST: Outcome-based guarantee \u2014 'If you don't [specific result] in [timeframe], [specific remedy]'",
+        "STRONG: Money-back with specifics \u2014 '30-day refund, no questions, no forms, processed in 24 hours'",
+        "MEDIUM: Free trial with full access \u2014 '14 days free, all features, no credit card'",
+        "WEAK: Generic \u2014 'Cancel anytime' (expected, not differentiating)"
+      ],
+      "placement": "Dedicated card near final CTA. Bordered, slightly different bg, bold headline."
+    },
+    "cognitive_ease": {
+      "what": "Easier to process = more trusted. Reduce cognitive load everywhere.",
+      "how_to_apply": [
+        "3 features, not 7. 3 plans, not 5. 3 steps, not 8.",
+        "One CTA per viewport, not three competing buttons",
+        "Concrete numbers, not abstract concepts: '4 minutes' not 'quick'",
+        "Simple words: 'See your team speed' not 'Visualize velocity metrics'",
+        "Short sentences. 15 words max. Break at the period.",
+        "Visual hierarchy: the eye should follow ONE path down the page"
+      ],
+      "placement": "Everywhere. This is a meta-rule, not a section."
+    },
+    "commitment_escalation": {
+      "what": "Small action \u2192 larger action. People who take step 1 are 5x more likely to take step 2.",
+      "how_to_apply": [
+        "CTA ladder: 'See demo' (free) \u2192 'Start trial' (email) \u2192 'Upgrade' (payment)",
+        "Progressive forms: ask for email first \u2192 then name \u2192 then company \u2014 not all at once",
+        "Free tool or calculator on landing page \u2192 captures interest \u2192 leads to signup",
+        "Freemium: let them use the product \u2192 upsell at usage limits",
+        "Interactive elements: letting the visitor click/scroll/interact creates micro-commitments"
+      ],
+      "placement": "CTA strategy, signup flows, onboarding sequences"
+    },
+    "scarcity_urgency": {
+      "what": "Limited availability or time pressure increases perceived value. MUST be real \u2014 fake urgency destroys trust permanently.",
+      "types": [
+        "TIME: 'Offer ends [specific date]' \u2014 concrete deadline, not 'limited time'",
+        "QUANTITY: 'Only [X] spots in the beta' \u2014 specific number",
+        "PRICE: 'Launching at $X \u2014 price increases to $Y after [date]'",
+        "SOCIAL: '[X] people signed up today' \u2014 implies momentum, creates FOMO",
+        "CAPACITY: 'We onboard [X] new teams per month to ensure quality'"
+      ],
+      "placement": "Top banner, hero micro-copy, CTA micro-copy, pricing card badges"
+    },
+    "reciprocity": {
+      "what": "Give value BEFORE asking for anything. Creates psychological debt that converts.",
+      "how_to_apply": [
+        "Free tool, calculator, or assessment on the landing page",
+        "Free report, template, or resource without gating",
+        "Generous free tier (not crippled trial)",
+        "Free migration/import service",
+        "Free consultation, audit, or strategy session"
+      ],
+      "placement": "Above-the-fold offer, secondary CTA, content marketing"
+    },
+    "future_pacing": {
+      "what": "Help the visitor mentally simulate life AFTER they buy. When someone can vividly imagine the positive outcome, the decision feels already made.",
+      "how_to_apply": [
+        "'Imagine opening your laptop Monday and seeing exactly what everyone shipped \u2014 without asking.'",
+        "'This time next month, your [metric] will be [X]% better. Your [painful activity] will take [Y minutes], not [Z].'",
+        "'In 4 minutes, your entire team's work will be in one place.'",
+        "Use present tense for the future state \u2014 'Your dashboard shows real-time velocity' not 'will show'"
+      ],
+      "placement": "Bridge sections (between problem and solution), final CTA context, onboarding welcome screens"
+    },
+    "authority_signals": {
+      "what": "Institutional trust markers that signal credibility without being testimonials.",
+      "types": [
+        "Compliance: SOC 2, GDPR, HIPAA, ISO 27001, PCI DSS",
+        "Reliability: 99.9% uptime SLA, enterprise-grade infrastructure",
+        "Backing: investor names, accelerator participation",
+        "Media: press mentions, awards, industry recognition",
+        "Scale: total users, API calls processed, data points analyzed",
+        "Team: 'Built by engineers from [recognizable company]'"
+      ],
+      "placement": "Horizontal badge row, usually after hero or after features. Muted colors, small text. Supporting evidence, not the main argument."
+    },
+    "contrast_principle": {
+      "what": "Things appear more different when placed next to each other. Use this to make your product look dramatically better than alternatives.",
+      "how_to_apply": [
+        "Comparison tables: your green checks next to competitor red X's",
+        "Before/after scenarios: 'Without [product]' (painful) vs 'With [product]' (easy)",
+        "Price anchoring: show high competitor price before your lower price",
+        "Setup time: '2-4 weeks (them) vs 4 minutes (you)'",
+        "Pricing pages: the featured plan looks better when flanked by worse-value alternatives"
+      ],
+      "placement": "Comparison sections, pricing pages, feature sections"
+    },
+    "endowment_effect": {
+      "what": "People value things they already have more than things they don't. Once they start using your product (even in trial), they won't want to give it up.",
+      "how_to_apply": [
+        "Generous free trials with full access \u2014 let them build real workflows",
+        "Allow data import so their data lives in your product",
+        "Onboarding that creates immediate value \u2014 first report, first dashboard, first automation",
+        "Progress indicators: 'You've completed 3/5 setup steps' creates investment",
+        "Team invitations during trial \u2014 more people using it = harder to leave"
+      ],
+      "placement": "Trial structure, onboarding flow design, activation strategy"
+    }
+  },
+  "animation_patterns": {
+    "_instructions": "Animation rules for public-facing pages. Every animation must be purposeful \u2014 it either draws attention to a conversion element or provides feedback for an interaction. Decorative animation is banned.",
+    "universal_rules": [
+      "Every animation must have a purpose: direct attention, provide feedback, or indicate state change. If you can't name the purpose, remove the animation.",
+      "Duration: 150ms for micro-interactions (hover, focus), 300ms for state changes (tab switch, accordion), 500ms for reveals (scroll-in), 200ms for exits (toast dismiss).",
+      "Easing: ease-out for entries (fast start, slow end \u2014 feels responsive). ease-in for exits (slow start, fast end \u2014 feels natural). Never use linear for UI \u2014 it feels robotic.",
+      "Respect prefers-reduced-motion. Wrap all animations in @media (prefers-reduced-motion: no-preference). Users who disable motion get instant state changes.",
+      "No animation on first paint. The page loads static. Animations trigger on scroll, hover, or interaction \u2014 never on page load (except the hero badge pulse).",
+      "Maximum 2 animated elements visible at any time. If the page feels 'busy' or 'bouncy', remove animations until it doesn't.",
+      "Never animate layout properties (width, height, top, left, margin, padding). Animate only transform and opacity \u2014 everything else triggers layout recalculation and jank."
+    ],
+    "scroll_reveal": {
+      "description": "Elements fade/slide in as they enter the viewport. Used for feature cards, testimonials, metric numbers, and sections below the fold.",
+      "implementation": "Use IntersectionObserver. Elements start with opacity: 0 and transform: translateY(20px). When they enter viewport at 20% threshold, transition to opacity: 1 and translateY(0) over 500ms ease-out.",
+      "stagger": "When multiple elements reveal together (feature grid, metric row), stagger by 100ms per item. First item at 0ms, second at 100ms, third at 200ms.",
+      "rules": [
+        "Only trigger ONCE per element. Don't re-animate on scroll-up.",
+        "Never reveal more than 4 items in a single stagger sequence.",
+        "Hero section is NEVER scroll-revealed \u2014 it's visible on load.",
+        "Don't reveal elements that are already in viewport on load."
+      ],
+      "css": "transition: opacity 500ms ease-out, transform 500ms ease-out",
+      "initial_state": "opacity: 0; transform: translateY(20px)",
+      "revealed_state": "opacity: 1; transform: translateY(0)"
+    },
+    "counter_animation": {
+      "description": "Metrics/numbers count up from 0 to their final value. Used for stat cards, metrics rows, pricing numbers.",
+      "implementation": "Trigger when element enters viewport. Count from 0 to target over 1500ms with ease-out timing (fast at start, slow at end). Use requestAnimationFrame, not setInterval.",
+      "rules": [
+        "Only animate integers. Don't animate decimals (47.3%) \u2014 it looks jittery. Round to nearest integer during animation, then show final decimal value.",
+        "Prefix/suffix ($, %, +, K, M) appear immediately, not after the count.",
+        "Format with locale separators during animation (1,234 not 1234).",
+        "Maximum 4 counters visible at once."
+      ]
+    },
+    "hover_interactions": {
+      "description": "Feedback on interactive elements. Every clickable element must have a hover state.",
+      "patterns": {
+        "buttons": "transition-colors duration-150. Primary: bg lightens. Secondary: bg fills. Ghost: text brightens.",
+        "cards": "transition-colors duration-150. Border color change OR bg subtle shift. NEVER scale, shadow, or lift.",
+        "links": "transition-colors duration-100. Color change to accent or primary text.",
+        "nav_items": "transition-colors duration-100. Text brightens + bg appears.",
+        "table_rows": "transition-colors duration-100. Subtle bg fill on entire row.",
+        "images_in_grids": "transform scale(1.03) over 300ms ease-out. ONLY for image galleries, not cards."
+      },
+      "forbidden": [
+        "Never combine scale + shadow + color change on one element",
+        "Never scale anything except images in galleries",
+        "Never add shadow on hover (use bg change instead)",
+        "Never change more than 2 properties simultaneously"
+      ]
+    },
+    "loading_transitions": {
+      "description": "Feedback during async operations.",
+      "patterns": {
+        "skeleton_pulse": "animate-pulse on bg-tertiary rectangles. Match shape of expected content.",
+        "button_loading": "Replace text with spinner (border-2 border-current border-t-transparent rounded-full animate-spin w-4 h-4) + action verb ('Saving...', 'Sending...').",
+        "page_transition": "Outgoing page opacity fades to 0 over 150ms, incoming page fades from 0 to 1 over 200ms.",
+        "toast_enter": "translateY(100%) \u2192 translateY(0) over 300ms ease-out.",
+        "toast_exit": "opacity 1 \u2192 0 over 200ms ease-in, then remove from DOM.",
+        "modal_enter": "Overlay: opacity 0 \u2192 1 over 200ms. Modal: opacity 0 scale(0.95) \u2192 opacity 1 scale(1) over 300ms ease-out.",
+        "modal_exit": "Modal: opacity \u2192 0 over 150ms. Overlay: opacity \u2192 0 over 200ms."
+      }
+    },
+    "attention_directors": {
+      "description": "Subtle animations that draw the eye to conversion elements.",
+      "patterns": {
+        "pulse_dot": "A small colored dot (6-8px) with infinite pulse animation (opacity 1 \u2192 0.4 \u2192 1 over 2s). Used on: live status badges, notification indicators, 'new' markers.",
+        "shimmer": "A subtle light sweep across a CTA button on first viewport entry ONLY. 45-degree linear gradient from transparent to white/10 to transparent, translateX(-100%) \u2192 translateX(100%) over 1s. Triggers ONCE. Used only on the primary CTA, never secondary.",
+        "arrow_bounce": "A small down-arrow below the hero that bounces vertically (translateY(0) \u2192 translateY(8px) \u2192 translateY(0)) over 2s infinite. Tells the visitor to scroll. Remove after first scroll event."
+      },
+      "rules": [
+        "Maximum ONE attention director visible at any time",
+        "Never on body text or secondary elements",
+        "Only on conversion elements (CTA, badge, scroll indicator)"
+      ]
+    }
+  },
+  "responsive_rules_public": {
+    "_instructions": "These responsive rules apply to ALL public-facing pages. The model implements these for EVERY page it builds \u2014 they are not suggestions, they are requirements.",
+    "breakpoints": {
+      "mobile": "max-width: 639px \u2014 single column, stacked, touch-optimized",
+      "tablet": "640px to 1023px \u2014 flexible 2-column, adapted navigation",
+      "desktop": "1024px and up \u2014 full layout, sidebar nav, multi-column"
+    },
+    "universal_responsive_rules": [
+      "Mobile-first CSS. Start with mobile styles, add complexity at larger breakpoints via min-width media queries.",
+      "Touch targets: minimum 44px height on ALL interactive elements on mobile. Buttons, links, nav items, form inputs. No exceptions.",
+      "Font sizes never go below 14px (text-sm) on any screen size. Body text stays at 14-16px across all breakpoints.",
+      "Padding: p-4 (16px) on mobile page wrappers, p-6 (24px) on tablet, p-8 (32px) on desktop. Consistent within each breakpoint.",
+      "Content max-widths are enforced at every breakpoint: max-w-7xl (1280px) for full layouts, max-w-4xl (896px) for hero text, max-w-2xl (672px) for forms, max-w-sm (384px) for auth forms.",
+      "Images: always use object-cover with aspect ratios defined. Never let images stretch or distort. Use responsive srcset when possible.",
+      "Horizontal scroll is NEVER acceptable on the main page axis. If content overflows, it must wrap, stack, or be contained in a scrollable sub-container (like kanban).",
+      "Test mental model: hold your phone vertically. Can you complete the primary conversion action (signup, purchase, contact) with one thumb? If not, the mobile layout is wrong."
+    ],
+    "component_responsive_behavior": {
+      "navigation": {
+        "desktop": "Full horizontal nav with links + CTA button",
+        "tablet": "Hamburger menu or condensed nav (logo + CTA only)",
+        "mobile": "Hamburger icon \u2192 full-screen overlay menu or slide-in drawer. CTA button remains visible."
+      },
+      "hero_section": {
+        "desktop": "text-5xl heading, 14-16px body, horizontal CTA row with gap-4",
+        "tablet": "text-4xl heading, same body, CTAs may stack if narrow",
+        "mobile": "text-3xl heading, 13-14px body, CTAs stack vertically full-width, centered"
+      },
+      "feature_grids": {
+        "desktop": "3-column grid (grid-cols-3)",
+        "tablet": "2-column grid (grid-cols-2) \u2014 third item wraps to new row",
+        "mobile": "Single column (grid-cols-1) \u2014 items stack vertically"
+      },
+      "metrics_rows": {
+        "desktop": "4 items horizontal (flex or grid-cols-4)",
+        "tablet": "2x2 grid (grid-cols-2)",
+        "mobile": "2x2 grid (grid-cols-2) with smaller text (text-2xl values instead of text-3xl)"
+      },
+      "testimonial_grids": {
+        "desktop": "2x2 grid",
+        "tablet": "2-column",
+        "mobile": "Single column \u2014 cards stack. Consider horizontal scroll carousel as alternative."
+      },
+      "comparison_tables": {
+        "desktop": "Full table with all columns",
+        "tablet": "Table with horizontal scroll if needed, sticky first column",
+        "mobile": "Compact table with smaller text (text-xs), or transform into stacked cards (one per row)"
+      },
+      "pricing_cards": {
+        "desktop": "3-column grid, featured card slightly elevated or bordered",
+        "tablet": "3-column grid (cards compress)",
+        "mobile": "Single column \u2014 featured card first, others stack below"
+      },
+      "footer": {
+        "desktop": "4-column grid",
+        "tablet": "2x2 grid",
+        "mobile": "Single column accordion OR 2-column grid"
+      },
+      "forms": {
+        "desktop": "2-column field grid for short fields (name + email), full-width for textareas",
+        "tablet": "Same as desktop if space allows, otherwise single column",
+        "mobile": "Always single column. Full-width inputs. Submit button full-width."
+      },
+      "modals": {
+        "desktop": "Centered, max-w-lg, rounded-xl",
+        "tablet": "Same as desktop",
+        "mobile": "Full-width, anchored to bottom of screen (bottom sheet pattern), rounded-t-xl only"
+      },
+      "sidebar_app_layout": {
+        "desktop": "Fixed sidebar (w-64) + main content",
+        "tablet": "Collapsible sidebar (toggle button) or icon-only sidebar (w-16)",
+        "mobile": "No sidebar visible. Hamburger menu in top bar \u2192 overlay drawer slides in from left"
+      },
+      "sticky_cta": {
+        "mobile": "Sticky bottom bar with CTA button, visible when hero CTA scrolls out of view. 56px height, border-top, blur backdrop.",
+        "desktop": "Not needed \u2014 hero CTA is visible or repeated in sections"
+      }
+    }
+  },
+  "cta_system": {
+    "_instructions": "Universal CTA rules and formulas. The model picks the right CTA style based on conversion goal and page position.",
+    "button_text_rules": [
+      "CTA text must complete 'I want to ___'. 'Start free trial' works. 'Submit' does not.",
+      "Use action verbs: Start, Get, See, Try, Join, Switch, Create, Build, Launch, Claim, Unlock.",
+      "NEVER use: Submit, Click here, Learn more (weak), Continue (vague), Next (vague).",
+      "Include the VALUE in the button when possible: 'Start shipping faster' > 'Get started'. 'See my savings' > 'Calculate'.",
+      "Primary CTA: 5-6 words max. Secondary CTA: 3-4 words max.",
+      "Add risk removal to primary CTA when possible: 'Start free \u2014 no credit card' (the dash + qualifier)."
+    ],
+    "cta_formulas_by_goal": {
+      "free_trial": [
+        "Start free trial",
+        "Start free \u2014 no credit card",
+        "Try it free for [X] days",
+        "Start building \u2014 it's free",
+        "Get started free"
+      ],
+      "outcome_focused": [
+        "Start [outcome verb]ing [outcome modifier]",
+        "See my [key metric]",
+        "Get my first [deliverable]",
+        "Start saving [X] hours/week",
+        "Start closing more [target]"
+      ],
+      "curiosity": [
+        "See why [audience] switch",
+        "See it in action",
+        "Watch the [X]-min demo",
+        "See what you're missing",
+        "See the difference"
+      ],
+      "urgency": [
+        "Lock in [X]% off now",
+        "Claim your [offer]",
+        "Start before [deadline]",
+        "Get early access",
+        "Reserve my [thing]"
+      ],
+      "migration": [
+        "Start free migration",
+        "Switch in [X] minutes",
+        "Import from [competitor] free",
+        "Move your team over",
+        "Start the switch"
+      ],
+      "low_commitment": [
+        "See a quick demo",
+        "Take the product tour",
+        "Browse [content type]",
+        "Calculate your savings",
+        "See pricing"
+      ]
+    },
+    "micro_copy_below_cta": [
+      "No credit card required. Cancel anytime.",
+      "Free forever for [tier description].",
+      "Setup takes under [X] minutes.",
+      "Join [X,XXX]+ [customers] already using [product].",
+      "Import from [competitor list] in one click.",
+      "[X]-day free trial. Full features. No limits.",
+      "Your data stays yours. Export anytime.",
+      "[Guarantee: X]-day money-back. No questions asked.",
+      "Trusted by teams at [recognizable companies].",
+      "No sales call required. Start on your own."
+    ],
+    "cta_placement_rules": [
+      "Primary CTA appears minimum 3 times on a long page: hero, mid-page (after proof), bottom.",
+      "Same button text and style everywhere \u2014 don't change the CTA text between sections.",
+      "On mobile: add a sticky bottom CTA bar that appears when the hero CTA scrolls out of view.",
+      "Never put two primary CTAs next to each other. Primary + secondary (ghost/outline) only.",
+      "CTA button is ALWAYS the highest-contrast element in its section. If it doesn't pop, darken the background or increase button size."
+    ]
+  },
+  "objection_handling": {
+    "_instructions": "Every landing page has objections the visitor is thinking but not saying. The page must handle these IN THE FLOW \u2014 not in a FAQ section. FAQs are where objections go to die. Handle them contextually, where the visitor is most likely thinking them.",
+    "universal_objections": {
+      "is_it_hard_to_set_up": {
+        "when_visitor_thinks_it": "After seeing features (they imagine the implementation effort)",
+        "handling_method": "3-step setup section with specific times and effort levels",
+        "placement": "After features, before final CTA",
+        "template": "Numbered steps (1, 2, 3) with: step title + one sentence + specific time/effort marker. Example: '1. Import your data \u2014 one-click from [sources]. 2. Invite your team \u2014 SSO, Google, or email. 3. Go live \u2014 you're productive in [X] minutes.'"
+      },
+      "is_it_secure_reliable": {
+        "when_visitor_thinks_it": "Before committing (signup, payment, data entry)",
+        "handling_method": "Trust badges row near the action point",
+        "placement": "After hero (for enterprise) or near forms (for consumers)",
+        "template": "Horizontal row: compliance badges (SOC 2, GDPR) + reliability metrics (99.9% uptime) + encryption note. Small text, muted colors."
+      },
+      "what_if_it_doesnt_work": {
+        "when_visitor_thinks_it": "Right before the CTA click",
+        "handling_method": "Risk-reversal card with specific guarantee",
+        "placement": "Immediately before or alongside the final CTA",
+        "template": "Bordered card with bold headline + specific terms. The more specific and generous, the more it converts."
+      },
+      "is_it_worth_the_price": {
+        "when_visitor_thinks_it": "On pricing pages and after seeing the price",
+        "handling_method": "ROI calculation or cost-of-inaction math",
+        "placement": "Below pricing cards or in hero subheadline",
+        "template": "'[Product] costs $X/mo. The average team saves [Y hours] per [period]. At $[Z]/hr, that's $[calculated ROI] saved. ROI in [timeframe].'"
+      },
+      "is_it_too_complex_for_us": {
+        "when_visitor_thinks_it": "After seeing advanced features or enterprise language",
+        "handling_method": "Simplicity proof \u2014 demo screenshot, 'works out of the box' language, or beginner testimonial",
+        "placement": "After features section",
+        "template": "Testimonial from a small team: 'We're a 5-person startup and we were up and running in 10 minutes.' OR screenshot of clean, simple UI with caption 'No training needed.'"
+      },
+      "will_my_team_actually_use_it": {
+        "when_visitor_thinks_it": "For any team/collaborative product",
+        "handling_method": "Adoption metric or cross-role testimonials",
+        "placement": "Social proof section",
+        "template": "'98% team adoption rate' metric + testimonials from different roles (engineer, designer, PM, manager) all saying they use it."
+      },
+      "can_i_switch_back_if_needed": {
+        "when_visitor_thinks_it": "When migrating from a competitor",
+        "handling_method": "Data portability statement and parallel-running offer",
+        "placement": "Risk-reversal section",
+        "template": "'Your data is always yours. Full export anytime. Run [product] alongside your current tool \u2014 switch when you're ready, not before.'"
+      }
+    },
+    "placement_rules": [
+      "Handle objections WHERE the visitor thinks them, not in a FAQ section at the bottom.",
+      "Security concerns \u2192 near signup forms and payment forms.",
+      "Setup difficulty \u2192 after features, before CTA.",
+      "Price worth \u2192 on pricing page, below the cards.",
+      "Team adoption \u2192 in social proof section, using cross-role testimonials.",
+      "Migration fear \u2192 in risk-reversal section, near final CTA.",
+      "An FAQ section at the bottom is acceptable ONLY for edge-case questions that don't fit the flow (billing details, API limits, data residency). The top 3-5 objections must be handled inline."
+    ]
+  },
+  "section_patterns": {
+    "_instructions": "Reusable section patterns that can be mixed and matched across any page type. Each pattern is a self-contained conversion element.",
+    "hero_badge": {
+      "what": "Small pill-shaped badge above the hero headline. Creates social proof or recency before the main message.",
+      "variants": [
+        "Live counter: '[X] signed up this week' with pulsing green dot \u2014 social momentum",
+        "Recency: 'New: [feature name] just launched' with sparkle icon \u2014 product momentum",
+        "Credibility: 'Rated #1 on G2 for [category]' \u2014 third-party authority",
+        "Event: '[X]% off \u2014 ends [date]' \u2014 urgency"
+      ],
+      "classes": "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-secondary)]",
+      "dot_animation": "w-1.5 h-1.5 rounded-full bg-[var(--success)] animate-pulse"
+    },
+    "metrics_bar": {
+      "what": "Horizontal row of 3-4 large numbers with small labels. Creates anchoring and credibility.",
+      "rules": [
+        "3-4 metrics max. Never 5+.",
+        "Numbers: text-3xl or text-4xl, font-bold, tabular-nums, tracking-tight.",
+        "Labels: text-xs, uppercase, tracking-wider, text-tertiary.",
+        "Animate numbers on viewport entry (count up from 0).",
+        "Include unit prefix/suffix: $, %, +, K, M.",
+        "Separate with generous gaps (gap-8 to gap-12)."
+      ],
+      "metric_categories": [
+        "SCALE: total users, tasks completed, API calls, data processed",
+        "OUTCOME: speed improvement %, time saved, money saved, conversion rate",
+        "RELIABILITY: uptime %, response time, error rate",
+        "ADOPTION: customer count, team count, countries, NPS score",
+        "SPEED: setup time, time-to-value, onboarding duration"
+      ]
+    },
+    "trust_badges_row": {
+      "what": "Horizontal row of small trust indicators near conversion points.",
+      "variants": [
+        "COMPLIANCE: SOC 2, GDPR, HIPAA, ISO 27001, PCI DSS icons/text",
+        "RELIABILITY: '99.9% uptime' + 'Enterprise-grade' + 'Encrypted at rest'",
+        "PAYMENT: 'Secure checkout' + card brand logos + 'SSL encrypted'",
+        "SATISFACTION: '30-day guarantee' + '24/7 support' + 'Free migration'"
+      ],
+      "classes": "flex items-center justify-center gap-4 flex-wrap py-3 text-xs text-[var(--text-tertiary)]",
+      "icon_classes": "w-4 h-4 text-[var(--success)]"
+    },
+    "three_step_process": {
+      "what": "Visual 1-2-3 breakdown of how the product works. Reduces perceived complexity.",
+      "rules": [
+        "Always 3 steps. Never 2, 4, or 5.",
+        "Each step: numbered circle + title (5 words max) + description (1 sentence).",
+        "Include a specific effort marker in at least one step: '4 minutes', 'one click', 'zero config'.",
+        "Steps should map to: INPUT (bring your stuff) \u2192 ACTION (do the thing) \u2192 OUTCOME (get the result).",
+        "Number circles: accent bg with white text for current/completed, bg-tertiary with muted text for upcoming."
+      ]
+    },
+    "comparison_table": {
+      "what": "Side-by-side feature comparison with a named competitor. Creates contrast and visual verdict.",
+      "rules": [
+        "Name the competitor explicitly. Generic 'Others' is weak.",
+        "6-8 rows max. Don't compare 20 features \u2014 compare the ones that matter.",
+        "Your column: accent-colored header, green checks, specific values (not just checks).",
+        "Competitor column: muted header, red X's or weaker values, muted text.",
+        "Highlight your best row (usually price or setup time) with accent background.",
+        "Price comparison LAST \u2014 knockout punch after establishing feature parity.",
+        "Always use specific team size for price: '$29/mo for 50 users' not '$0.58/user'."
+      ]
+    },
+    "testimonial_card": {
+      "what": "Individual social proof unit. Reusable in grids, carousels, or standalone.",
+      "required_elements": [
+        "Quote text: 2-3 sentences max. Must include at least ONE specific outcome (number, timeframe, or measurable result).",
+        "Author avatar: initials circle or real photo.",
+        "Author name: real full name.",
+        "Author title: job title + company name.",
+        "Optional: team/company size, migration source, industry."
+      ],
+      "quote_quality_rules": [
+        "GOOD: 'We migrated 200 engineers from Jira in a weekend. Velocity jumped 34% in the first month.'",
+        "BAD: 'Great tool! Love it. 5 stars.'",
+        "GOOD: 'The automation engine saves us 12 hours a week. We automated sprint planning entirely.'",
+        "BAD: 'This product has saved us a lot of time.'",
+        "The difference: specificity. Numbers, timeframes, named features, named competitors, measurable outcomes."
+      ]
+    },
+    "risk_reversal_card": {
+      "what": "Bordered card that eliminates the last objection before conversion.",
+      "required_elements": [
+        "Headline: bold, 3-6 words. Examples: 'Zero risk. Seriously.' / '100% money-back guarantee' / 'Switch risk-free'",
+        "Description: 1-2 sentences with SPECIFIC terms. Duration, process, coverage.",
+        "No generic 'cancel anytime' \u2014 that's expected, not differentiating."
+      ],
+      "classes": "rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)] p-5 text-center max-w-md mx-auto"
+    },
+    "urgency_banner": {
+      "what": "Full-width banner at page top for time-sensitive offers.",
+      "required_elements": [
+        "Offer description + SPECIFIC deadline + inline CTA link",
+        "Must be closeable (X button) \u2014 forced banners create resentment",
+        "Must be REAL \u2014 fake urgency permanently destroys trust"
+      ],
+      "classes": "bg-[var(--accent)] text-white text-center py-2.5 px-4 text-sm font-medium relative",
+      "close_button": "absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
+    },
+    "logo_bar": {
+      "what": "Horizontal row of customer/partner logos for passive authority.",
+      "rules": [
+        "5-7 logos max. More looks cluttered.",
+        "40-50% opacity. Logos are subconscious signals, not featured content.",
+        "All logos same height (20-28px). Maintain aspect ratios.",
+        "Horizontally centered with gap-8 to gap-12.",
+        "If you don't have real logos, use company NAMES in a monospaced or bold sans-serif font at low opacity. Still effective.",
+        "Optional: 'Trusted by teams at' or 'Used by' above in small muted text."
+      ]
+    },
+    "sticky_mobile_cta": {
+      "what": "Fixed bottom bar on mobile that appears when the hero CTA scrolls out of view.",
+      "required_elements": [
+        "Product name or value prop (text-sm, muted)",
+        "Primary CTA button (full-height, accent bg)",
+        "Total height: 56-64px",
+        "Border-top + backdrop-blur for layering"
+      ],
+      "behavior": "Hidden on load. Appears (slide up) when hero CTA leaves viewport. Hides (slide down) when hero CTA re-enters viewport.",
+      "classes": "fixed bottom-0 left-0 right-0 h-14 bg-[var(--bg-primary)]/95 backdrop-blur-sm border-t border-[var(--border)] flex items-center justify-between px-4 z-50 transition-transform duration-300"
+    },
+    "faq_accordion": {
+      "what": "Collapsible question-answer pairs. For edge-case questions ONLY \u2014 top objections are handled inline.",
+      "rules": [
+        "5-8 questions max. If you need more, the page copy isn't clear enough.",
+        "Questions phrased as the visitor would ask them: 'Can I import from Jira?' not 'Data import capabilities'.",
+        "Answers: 2-3 sentences max. Direct, specific, no fluff.",
+        "Place after final CTA or on a dedicated /faq page.",
+        "Never put your top 3 objections here \u2014 handle those in the page flow."
+      ],
+      "item_classes": "border-b border-[var(--border)] py-4 cursor-pointer",
+      "question_classes": "text-sm font-medium text-[var(--text-primary)] flex items-center justify-between",
+      "answer_classes": "text-sm text-[var(--text-secondary)] mt-2 leading-relaxed"
+    }
+  },
+  "page_type_detection": {
+    "_instructions": "The BUILD SPEC generator uses these keyword patterns to detect which page frameworks and psychological triggers to inject. The model doesn't choose \u2014 the pipeline detects and injects.",
+    "detection_rules": [
+      {
+        "page_type": "landing_page",
+        "keywords": [
+          "landing",
+          "homepage",
+          "marketing",
+          "launch",
+          "announce",
+          "promote"
+        ],
+        "framework_selection": {
+          "has_traction_keywords": [
+            "enterprise",
+            "teams use",
+            "trusted by",
+            "customers",
+            "migration from"
+          ],
+          "framework": "authority_dominance"
+        }
+      },
+      {
+        "page_type": "landing_page",
+        "keywords": [
+          "landing",
+          "homepage",
+          "marketing"
+        ],
+        "framework_selection": {
+          "has_pain_keywords": [
+            "replace",
+            "fix",
+            "broken",
+            "frustrated",
+            "alternative",
+            "instead of",
+            "better than"
+          ],
+          "framework": "problem_agitation_solution"
+        }
+      },
+      {
+        "page_type": "landing_page",
+        "keywords": [
+          "landing",
+          "homepage"
+        ],
+        "framework_selection": {
+          "has_competitor_keywords": [
+            "vs",
+            "versus",
+            "alternative to",
+            "compared to",
+            "switch from",
+            "migrate from",
+            "replace"
+          ],
+          "framework": "competitor_comparison"
+        }
+      },
+      {
+        "page_type": "landing_page",
+        "keywords": [
+          "landing",
+          "homepage"
+        ],
+        "framework_selection": {
+          "has_urgency_keywords": [
+            "launch",
+            "beta",
+            "early access",
+            "limited",
+            "offer",
+            "discount",
+            "sale"
+          ],
+          "framework": "urgency_scarcity"
+        }
+      },
+      {
+        "page_type": "landing_page",
+        "keywords": [
+          "landing",
+          "homepage"
+        ],
+        "framework_selection": {
+          "default": true,
+          "framework": "social_proof_wall"
+        }
+      },
+      {
+        "page_type": "pricing_page",
+        "always_include": [
+          "anchoring",
+          "risk_reversal",
+          "social_proof_specificity",
+          "contrast_principle"
+        ],
+        "triggers": [
+          "urgency_banner if has_offer",
+          "comparison_table if has_competitor"
+        ]
+      },
+      {
+        "page_type": "signup_flow",
+        "always_include": [
+          "cognitive_ease",
+          "commitment_escalation",
+          "risk_reversal",
+          "trust_badges_row"
+        ],
+        "triggers": [
+          "social_proof_specificity near submit button"
+        ]
+      },
+      {
+        "page_type": "checkout",
+        "always_include": [
+          "risk_reversal",
+          "trust_badges_row",
+          "scarcity_urgency if has_offer"
+        ],
+        "triggers": [
+          "testimonial_card near payment form",
+          "guarantee near submit"
+        ]
+      },
+      {
+        "page_type": "onboarding",
+        "always_include": [
+          "commitment_escalation",
+          "endowment_effect",
+          "future_pacing"
+        ],
+        "triggers": [
+          "progress_bar always visible",
+          "quick_win on first step"
+        ]
+      }
+    ]
+  },
+  "content_generation_rules": {
+    "_instructions": "Rules for generating realistic, high-quality content. The model must follow these when creating sample data, testimonials, and copy for scaffold builds.",
+    "sample_data": [
+      "NEVER use 'Lorem ipsum', 'John Doe', 'ACME Corp', 'Example Inc', or any obviously placeholder content.",
+      "Generate realistic names that reflect diversity: mix of genders, ethnicities, and cultural backgrounds.",
+      "Company names should sound like real companies: 'ScaleOps', 'Finbase', 'Cloudways', 'DataStack', 'Vertically' \u2014 not 'Company ABC'.",
+      "Job titles should be specific and realistic: 'VP Engineering' not 'Manager'. 'Head of Growth' not 'Employee'.",
+      "Numbers should be realistic for the product category: a SaaS tool might have 2,400 customers. A Fortune 500 product might have 200. Don't inflate to 'millions' unless it's a consumer app.",
+      "Testimonial quotes should sound like real people talking, not marketing copy: 'Should have done it years ago' not 'This product exceeds all expectations in every dimension'.",
+      "Email addresses in forms: 'sarah@company.com' not 'test@test.com'. Phone numbers: use realistic formats with area codes.",
+      "Dates and times: use realistic relative timestamps ('2 hours ago', 'Yesterday') not absolute dates unless on a calendar."
+    ],
+    "headline_quality_rules": [
+      "Every headline must contain EITHER a specific number OR a specific outcome. 'Ship 47% faster' or 'The platform 2,400 teams trust'. Never 'The best project management tool'.",
+      "Headlines are 6-12 words. If you can't say it in 12 words, you don't understand it well enough.",
+      "Avoid superlatives unless backed by data: 'fastest' requires a benchmark, 'most popular' requires a ranking, '#1' requires a source.",
+      "Use the visitor's vocabulary, not internal jargon. 'See who's blocked' not 'Visualize dependency graphs'.",
+      "Test: read the headline aloud. If it sounds like a human talking to a friend, it's good. If it sounds like a press release, rewrite it."
+    ]
+  },
+  "slop_scan_patterns_conversion": {
+    "_instructions": "Post-build regex patterns to detect conversion anti-patterns. Used by _scan_conversion_quality() in WiringAgent.",
+    "patterns": [
+      {
+        "name": "generic_cta_text",
+        "regex": ">\\s*(Submit|Click here|Learn more|Click to|Press here)\\s*<",
+        "severity": "high",
+        "message": "Generic CTA text detected. Use action verbs with outcomes: 'Start free trial', 'See pricing', 'Get started free'."
+      },
+      {
+        "name": "missing_social_proof",
+        "file_pattern": "landing|marketing|home",
+        "check": "No element containing testimonial, review, customer count, or logo bar found on public-facing page",
+        "severity": "high",
+        "message": "Landing page has no social proof. Add at least one testimonial, metric, or customer logo section."
+      },
+      {
+        "name": "lorem_ipsum",
+        "regex": "lorem ipsum|dolor sit amet|consectetur adipiscing|ACME Corp|John Doe|Jane Doe|test@test|example\\.com",
+        "severity": "high",
+        "message": "Placeholder content detected. Replace with realistic sample data."
+      },
+      {
+        "name": "no_risk_reversal",
+        "file_pattern": "pricing|checkout|signup",
+        "check": "No element containing guarantee, money-back, risk-free, cancel anytime, or refund",
+        "severity": "medium",
+        "message": "Conversion page missing risk-reversal element. Add a guarantee, free trial mention, or cancellation policy."
+      },
+      {
+        "name": "weak_headline",
+        "regex": "<h1[^>]*>(?!.*\\d)[^<]{0,50}</h1>",
+        "severity": "medium",
+        "message": "Hero headline contains no numbers. Add a specific metric, customer count, or outcome percentage for stronger conversion."
+      },
+      {
+        "name": "too_many_ctas",
+        "check": "More than 2 button elements within a single section/viewport",
+        "severity": "low",
+        "message": "Too many CTAs in one section. Maximum: 1 primary + 1 secondary per viewport."
+      },
+      {
+        "name": "buzzword_usage",
+        "regex": "\\b(synergy|leverage|cutting-edge|next-generation|world-class|revolutionary|innovative|disruptive|robust|seamless|holistic)\\b",
+        "severity": "medium",
+        "message": "Marketing buzzword detected. Replace with specific, concrete language."
+      },
+      {
+        "name": "missing_mobile_cta",
+        "check": "Landing page without sticky or repeated CTA for mobile viewport",
+        "severity": "medium",
+        "message": "No mobile-optimized CTA strategy. Add sticky bottom CTA bar or ensure CTA repeats at scroll intervals."
+      }
+    ]
+  }
+}

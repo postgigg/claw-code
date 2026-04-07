@@ -1,0 +1,314 @@
+{
+  "_meta": {
+    "name": "Rattlesnake Security Enforcement System",
+    "version": "1.0.0",
+    "description": "Security pattern registry — headers, middleware recipes, validation patterns, scan patterns. Injected into model context via _build_security_context(). The WiringAgent scanner uses security_scan_patterns to detect vulnerabilities post-scaffold.",
+    "usage": "Loaded by _load_security_json(). Context built by _build_security_context(). Scan patterns compiled by _get_security_scan_patterns()."
+  },
+  "philosophy": [
+    "Security is not optional. Every project gets security headers, input validation, and auth checks by default.",
+    "Defense in depth: multiple layers (headers, middleware, validation, CSP) so one failure doesn't expose everything.",
+    "Secrets never touch client code. Server secrets stay server-side. Environment variables are the only store.",
+    "Validate at the boundary. Every request body, query param, and URL param is validated before processing.",
+    "Fail closed. If auth check fails, return 401. If validation fails, return 400. Never proceed with bad data.",
+    "Least privilege. Users see only their own data. RLS + application-level user_id filtering.",
+    "No security theater. Don't add deprecated headers (X-XSS-Protection). Use standards that actually work (CSP).",
+    "Scan what you mandate. If the system prompt says 'use CORS correctly', the scanner must verify it."
+  ],
+  "security_rules": [
+    "Every POST/PUT/PATCH handler MUST validate request body before processing",
+    "Every GET handler with query params MUST validate/sanitize parameters",
+    "Every protected API route MUST call getUser() or getSession() at the start",
+    "Return 401 for missing/invalid auth, 400 for validation failure, 404 for not found, 500 for server errors",
+    "NEVER expose stack traces, internal errors, or database errors to users",
+    "All secrets stored in .env — NEVER hardcoded in source files",
+    "Server secrets MUST NOT use NEXT_PUBLIC_, REACT_APP_, VITE_, or NUXT_PUBLIC_ prefixes",
+    ".env.example MUST exist with placeholder values (no real secrets)",
+    "next.config.js MUST include security headers: X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy, Permissions-Policy",
+    "CSP MUST NOT include 'unsafe-eval' unless specifically required (e.g., certain MDX plugins)",
+    "NEVER use eval() or new Function() in application code",
+    "NEVER use innerHTML or dangerouslySetInnerHTML without DOMPurify sanitization",
+    "NEVER store JWT/auth tokens in localStorage — use httpOnly cookies",
+    "NEVER use origin: '*' in CORS configuration for production APIs",
+    "NEVER redirect users based on unvalidated user input (req.query, searchParams)",
+    "All cookies MUST set httpOnly, secure, and sameSite attributes",
+    "File uploads MUST validate file type, size, and content before processing",
+    "All text inputs MUST have maxLength to prevent payload abuse",
+    "Database queries MUST use parameterized queries — NEVER string interpolation",
+    "Wrap all database operations in try/catch with safe error responses",
+    "Filter all data queries by user_id to prevent cross-user data leakage",
+    "Rate limit authentication endpoints (login, signup, password reset)",
+    "Use CSRF protection on all state-changing operations",
+    "Password fields MUST NOT store cleartext — always hash with bcrypt/argon2/scrypt",
+    "API keys in code MUST come from environment variables, not string literals"
+  ],
+  "header_configs": {
+    "nextjs": {
+      "description": "Security headers for next.config.js headers() function. Inject into async headers() return value.",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff",
+          "description": "Prevents MIME-type sniffing. Browser trusts declared Content-Type."
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY",
+          "description": "Prevents clickjacking by blocking iframe embedding. Use SAMEORIGIN if you need iframe embeds from same domain."
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin",
+          "description": "Sends full URL for same-origin, only origin for cross-origin. Balances analytics needs with privacy."
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()",
+          "description": "Disables browser APIs not needed by most web apps. Add back specific permissions if your app needs them."
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains",
+          "description": "Forces HTTPS for 1 year. WARNING: Do NOT enable on localhost — HSTS on plain HTTP will lock out local development. Next.js dev server uses HTTP by default. Enable only in production with HTTPS."
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co",
+          "description": "Controls which resources the browser can load. NO 'unsafe-eval' — it re-enables eval()/new Function(). Add 'unsafe-eval' to script-src ONLY if your setup specifically requires it (e.g., certain MDX plugins)."
+        }
+      ]
+    },
+    "html": {
+      "description": "CSP as meta tag for static HTML. This is the only security header that works reliably as a meta tag. X-Frame-Options and X-Content-Type-Options don't work as meta tags — they're HTTP response headers only.",
+      "meta_tag": "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' https://cdn.tailwindcss.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com;\">",
+      "referrer_tag": "<meta name=\"referrer\" content=\"strict-origin-when-cross-origin\">"
+    },
+    "express": {
+      "description": "Security headers for Express/Fastify/Hono via helmet middleware. Install: npm install helmet",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff", "description": "Prevents MIME-type sniffing." },
+        { "key": "X-Frame-Options", "value": "DENY", "description": "Prevents clickjacking via iframe embedding." },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin", "description": "Balances analytics with privacy." },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'", "description": "Restricts resource loading origins." },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains", "description": "Forces HTTPS. Enable only in production." }
+      ],
+      "setup": "import helmet from 'helmet'; app.use(helmet());"
+    },
+    "generic": {
+      "description": "Generic security headers applicable to any HTTP server. Apply via middleware or reverse proxy.",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" }
+      ]
+    }
+  },
+  "middleware_recipes": {
+    "rate_limiter": {
+      "name": "Rate Limiter",
+      "description": "Token bucket rate limiting for auth endpoints. Prevents brute-force attacks on login/signup/password-reset.",
+      "applies_to": ["login", "signup", "password-reset", "api/auth"],
+      "code": "// lib/rate-limit.ts\nconst rateLimit = new Map<string, { count: number; resetTime: number }>();\n\nexport function checkRateLimit(key: string, limit = 5, windowMs = 60000): boolean {\n  const now = Date.now();\n  const entry = rateLimit.get(key);\n  if (!entry || now > entry.resetTime) {\n    rateLimit.set(key, { count: 1, resetTime: now + windowMs });\n    return true;\n  }\n  if (entry.count >= limit) return false;\n  entry.count++;\n  return true;\n}\n\n// Usage in API route:\n// const ip = request.headers.get('x-forwarded-for') || 'unknown';\n// if (!checkRateLimit(ip)) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });"
+    },
+    "auth_guard": {
+      "name": "Auth Guard",
+      "description": "Supabase auth check for protected API routes. Call at the start of every handler that needs authentication.",
+      "applies_to": ["api/protected"],
+      "code": "// In each protected API route:\nimport { createClient } from '@/lib/supabase/server';\nimport { cookies } from 'next/headers';\n\nconst supabase = createClient(cookies());\nconst { data: { user }, error } = await supabase.auth.getUser();\nif (!user) {\n  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });\n}"
+    },
+    "cors_config": {
+      "name": "CORS Configuration",
+      "description": "Properly configured CORS headers. NEVER use origin: '*' in production — always whitelist specific origins.",
+      "applies_to": ["api"],
+      "code": "// middleware.ts or API route:\nconst ALLOWED_ORIGINS = [\n  process.env.NEXT_PUBLIC_APP_URL,\n  'https://yourdomain.com',\n].filter(Boolean);\n\nfunction getCorsHeaders(origin: string | null) {\n  const headers: Record<string, string> = {\n    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type, Authorization',\n  };\n  if (origin && ALLOWED_ORIGINS.includes(origin)) {\n    headers['Access-Control-Allow-Origin'] = origin;\n  }\n  return headers;\n}"
+    },
+    "input_sanitizer": {
+      "name": "Input Sanitizer",
+      "description": "Validation utility for request bodies. Validates types, lengths, required fields before processing.",
+      "applies_to": ["api"],
+      "code": "// lib/validations.ts\nexport function validateStringField(value: unknown, name: string, opts?: { min?: number; max?: number; required?: boolean }): string | null {\n  const { min = 0, max = 1000, required = true } = opts || {};\n  if (value === undefined || value === null || value === '') {\n    return required ? `${name} is required` : null;\n  }\n  if (typeof value !== 'string') return `${name} must be a string`;\n  if (value.length < min) return `${name} must be at least ${min} characters`;\n  if (value.length > max) return `${name} must be at most ${max} characters`;\n  return null;\n}"
+    },
+    "csrf_protection": {
+      "name": "CSRF Protection",
+      "description": "CSRF token validation for state-changing requests. Uses double-submit cookie pattern.",
+      "applies_to": ["forms", "state-changing"],
+      "code": "// lib/csrf.ts\nimport { randomBytes } from 'crypto';\n\nexport function generateCsrfToken(): string {\n  return randomBytes(32).toString('hex');\n}\n\nexport function validateCsrfToken(cookieToken: string | undefined, headerToken: string | undefined): boolean {\n  if (!cookieToken || !headerToken) return false;\n  return cookieToken === headerToken;\n}"
+    }
+  },
+  "validation_patterns": {
+    "email": {
+      "name": "Email validation",
+      "regex": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+      "rules": ["Must contain @ and valid domain", "Max length 254 characters", "Trim whitespace before validation"]
+    },
+    "password": {
+      "name": "Password strength",
+      "regex": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$",
+      "rules": ["Minimum 8 characters", "At least one uppercase, one lowercase, one digit", "Max length 128 characters"]
+    },
+    "uuid": {
+      "name": "UUID v4 format",
+      "regex": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "rules": ["Standard UUID v4 format", "Case insensitive matching recommended"]
+    },
+    "url": {
+      "name": "URL validation",
+      "regex": "^https?://[^\\s/$.?#].[^\\s]*$",
+      "rules": ["Must start with http:// or https://", "No whitespace allowed", "Validate before redirect operations"]
+    },
+    "slug": {
+      "name": "URL slug",
+      "regex": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "rules": ["Lowercase alphanumeric with hyphens", "No leading or trailing hyphens", "Max length 100"]
+    }
+  },
+  "project_type_security": {
+    "saas": {
+      "description": "SaaS/dashboard applications — full security stack",
+      "required_middleware": ["auth_guard", "rate_limiter", "cors_config", "csrf_protection", "input_sanitizer"],
+      "keywords": ["saas", "dashboard", "admin", "crm", "platform", "management"]
+    },
+    "ecommerce": {
+      "description": "E-commerce — SaaS security + payment security",
+      "required_middleware": ["auth_guard", "rate_limiter", "cors_config", "csrf_protection", "input_sanitizer"],
+      "extra_rules": ["Validate payment amounts server-side — never trust client-side price", "PCI compliance: never log or store raw card numbers", "Use Stripe/payment processor tokens, not raw card data"],
+      "keywords": ["store", "shop", "ecommerce", "checkout", "cart", "payment"]
+    },
+    "api": {
+      "description": "API/backend services — auth + rate limiting + CORS",
+      "required_middleware": ["auth_guard", "rate_limiter", "cors_config", "input_sanitizer"],
+      "keywords": ["api", "rest", "graphql", "backend", "service", "microservice"]
+    },
+    "blog": {
+      "description": "Blog/CMS — lighter security profile",
+      "required_middleware": ["csrf_protection", "input_sanitizer"],
+      "keywords": ["blog", "cms", "content", "editorial", "magazine"]
+    }
+  },
+  "security_scan_patterns": {
+    "description": "Regex-based vulnerability scan patterns used by _scan_security_quality(). Each pattern has a regex, severity, message, and optional exceptions.",
+    "patterns": [
+      {
+        "name": "sql_injection",
+        "severity": "critical",
+        "regex": "(?:query|execute|raw)\\s*\\(\\s*[`'\"].*\\$\\{|(?:query|execute|raw)\\s*\\([^)]*\\+\\s*(?:req\\.|request\\.|params\\.|body\\.)",
+        "message": "Possible SQL injection: use parameterized queries instead of string interpolation in database calls",
+        "exceptions": ["test", "spec", "mock", "example", "fixture"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "missing_auth_check",
+        "severity": "low",
+        "description": "API handlers without auth check. Only fires when no middleware.ts/middleware.js exists in project root.",
+        "auth_keywords": ["getUser", "getSession", "auth()", "verifyToken", "createClient.*cookies"],
+        "skip_paths": ["/auth/", "/login", "/signup", "/register", "/webhook", "/health", "/public/", "/api/cron"],
+        "message": "API handler may be missing authentication check — call getUser()/getSession() at start of handler",
+        "file_types": [".ts", ".js"]
+      },
+      {
+        "name": "wildcard_cors",
+        "severity": "high",
+        "regex": "origin\\s*:\\s*['\"]\\*['\"]|cors\\(\\s*\\)",
+        "message": "Wildcard CORS (origin: '*') allows any website to make requests to your API — whitelist specific origins",
+        "exceptions": ["test", "spec", "mock", "example"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "unvalidated_redirect",
+        "severity": "high",
+        "regex": "(?:redirect|location\\.href|router\\.push|router\\.replace)\\s*\\(\\s*(?:req\\.query|req\\.params|searchParams|url\\.searchParams)",
+        "message": "Redirect from unvalidated user input — validate/whitelist URLs before redirecting",
+        "exceptions": ["test", "spec", "mock"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "cleartext_password",
+        "severity": "critical",
+        "regex": "password\\s*[:=]\\s*['\"][^'\"]{8,}['\"]",
+        "same_file_skip": ["bcrypt", "argon", "scrypt", "hash"],
+        "message": "Possible cleartext password literal — use bcrypt/argon2/scrypt hashing",
+        "exceptions": ["test", "spec", "mock", "example", "fixture", "seed", ".env.example"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "missing_rate_limit",
+        "severity": "medium",
+        "description": "Auth POST handlers without rate limiting. Only fires on security-aware projects (migration path).",
+        "regex": "export\\s+async\\s+function\\s+POST",
+        "rate_limit_keywords": ["rateLimit", "rate_limit", "rateLimiter", "checkRateLimit", "limiter"],
+        "path_filter": ["/auth/", "/login", "/signup", "/register", "/password"],
+        "message": "Auth endpoint missing rate limiting — add rate limiter to prevent brute-force attacks",
+        "file_types": [".ts", ".js"]
+      },
+      {
+        "name": "exposed_server_secret",
+        "severity": "critical",
+        "regex": "(?:NEXT_PUBLIC_|REACT_APP_|VITE_|NUXT_PUBLIC_)(?:[A-Z_]*(?:SECRET|SERVICE_ROLE|PRIVATE|ADMIN|PASSWORD|SIGNING))",
+        "message": "Server secret exposed with client-side environment prefix — remove NEXT_PUBLIC_/REACT_APP_/VITE_/NUXT_PUBLIC_ prefix",
+        "exceptions": [],
+        "file_types": [".ts", ".js", ".tsx", ".jsx", ".env", ".env.local", ".env.example"]
+      },
+      {
+        "name": "innerHTML_xss",
+        "severity": "high",
+        "regex": "innerHTML\\s*=|dangerouslySetInnerHTML",
+        "same_file_skip": ["DOMPurify", "sanitize", "sanitizeHtml", "xss"],
+        "message": "innerHTML/dangerouslySetInnerHTML without sanitization — use DOMPurify.sanitize() to prevent XSS",
+        "exceptions": ["test", "spec", "mock"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "eval_usage",
+        "severity": "critical",
+        "regex": "\\beval\\s*\\(|new\\s+Function\\s*\\(",
+        "message": "eval() or new Function() enables arbitrary code execution — find a safer alternative",
+        "exceptions": ["webpack", "babel", "config", "build", "jest", "vitest", ".config", "rollup", "vite.config", "next.config"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "missing_input_length",
+        "severity": "low",
+        "regex": "<(?:input(?:\\s+[^>]*type\\s*=\\s*[\"'](?:text|email|password|url|search|tel)[\"'][^>]*|\\s+(?!type)[^>]*)|textarea)[^>]*>",
+        "negative_regex": "maxLength|maxlength",
+        "message": "Text input without maxLength — add maxLength to prevent payload abuse",
+        "exceptions": [],
+        "file_types": [".tsx", ".jsx", ".html", ".htm"]
+      },
+      {
+        "name": "jwt_in_localstorage",
+        "severity": "high",
+        "regex": "localStorage\\.setItem\\s*\\(\\s*['\"](?:token|jwt|auth|session|access_token|refresh_token)['\"]",
+        "message": "Auth token stored in localStorage — use httpOnly cookies instead (localStorage is accessible to XSS)",
+        "exceptions": ["test", "spec", "mock"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "hardcoded_api_key",
+        "severity": "critical",
+        "regex": "(?:api[_-]?key|apiKey|api_secret|apiSecret)\\s*[:=]\\s*['\"][a-zA-Z0-9_\\-]{20,}['\"]",
+        "message": "Hardcoded API key — move to .env and access via process.env",
+        "exceptions": ["test", "mock", "spec", "example", "fixture", ".env.example", "seed"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "unvalidated_file_upload",
+        "severity": "high",
+        "regex": "(?:formData\\.get\\s*\\(['\"]file|upload|multer|busboy)\\s*",
+        "negative_regex": "validate|type|mime|size|accept|maxSize|fileFilter",
+        "message": "File upload without type/size validation — validate file type, size, and content before processing",
+        "exceptions": ["test", "spec", "mock"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      },
+      {
+        "name": "insecure_cookie",
+        "severity": "medium",
+        "regex": "(?:Set-Cookie|setCookie|cookies?\\(\\)\\.set|res\\.cookie)\\s*\\(",
+        "negative_regex": "httpOnly|secure|sameSite",
+        "message": "Cookie set without security attributes — add httpOnly, secure, and sameSite flags",
+        "exceptions": ["test", "spec", "mock"],
+        "file_types": [".ts", ".js", ".tsx", ".jsx"]
+      }
+    ]
+  }
+}

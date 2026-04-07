@@ -1,0 +1,3 @@
+recursive-include apis *.json
+recursive-include prompts *.json *.md
+recursive-include templates *

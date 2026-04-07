@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rattlesnake — System Flow</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0a;
+  color: #c8c8c8;
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 13px;
+  overflow-x: hidden;
+}
+
+#canvas-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  padding: 40px 30px 80px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e8a020;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: #555;
+  font-size: 11px;
+  margin-bottom: 40px;
+}
+
+.subtitle span { color: #666; }
+
+/* ---- Legend ---- */
+.legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #666;
+}
+.legend-swatch {
+  width: 12px; height: 12px;
+  border: 1px solid;
+}
+
+/* ---- Flow sections ---- */
+.flow-section {
+  margin-bottom: 50px;
+}
+
+.section-label {
+  font-size: 11px;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 14px;
+  padding-left: 2px;
+}
+
+/* ---- Node grid ---- */
+.node-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.node-row.centered { justify-content: center; }
+
+/* ---- Connector lines ---- */
+.connector {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 8px;
+  color: #333;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+}
+.connector.long { margin: 4px 0; }
+.connector .arrow { color: #e8a020; }
+.connector .pipe { color: #333; }
+
+/* ---- Nodes ---- */
+.node {
+  border: 1px solid #222;
+  padding: 8px 12px;
+  position: relative;
+  min-width: 140px;
+  transition: border-color 0.15s, background 0.15s;
+  cursor: default;
+}
+
+.node:hover {
+  border-color: #444;
+  background: #111;
+}
+
+.node .tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 3px;
+  display: block;
+}
+
+.node .name {
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.node .loc {
+  font-size: 10px;
+  color: #444;
+  display: block;
+}
+
+.node .detail {
+  font-size: 10px;
+  color: #555;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+/* Color classes */
+.node.entry    { border-color: #e8a020; }
+.node.entry .tag { color: #e8a020; }
+.node.entry .name { color: #f0c060; }
+
+.node.core     { border-color: #d04040; }
+.node.core .tag { color: #d04040; }
+.node.core .name { color: #f06060; }
+
+.node.provider { border-color: #3090e0; }
+.node.provider .tag { color: #3090e0; }
+.node.provider .name { color: #60b0f0; }
+
+.node.guard    { border-color: #d07020; }
+.node.guard .tag { color: #d07020; }
+.node.guard .name { color: #e09040; }
+
+.node.tool     { border-color: #30a060; }
+.node.tool .tag { color: #30a060; }
+.node.tool .name { color: #50d080; }
+
+.node.support  { border-color: #7050b0; }
+.node.support .tag { color: #7050b0; }
+.node.support .name { color: #9070d0; }
+
+.node.output   { border-color: #808080; }
+.node.output .tag { color: #808080; }
+.node.output .name { color: #aaa; }
+
+/* ---- Branch indicator ---- */
+.branch {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.branch-line {
+  width: 1px;
+  background: #333;
+  margin: 0 20px;
+  min-height: 20px;
+  flex-shrink: 0;
+}
+
+.branch-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.branch-label {
+  font-size: 10px;
+  color: #444;
+  padding: 2px 8px;
+  border-left: 2px solid #333;
+  margin-bottom: 2px;
+}
+
+/* ---- Horizontal pipe rows ---- */
+.pipe-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 6px 0;
+}
+.pipe-row .seg {
+  height: 1px;
+  background: #333;
+  flex: 1;
+}
+.pipe-row .junction {
+  width: 6px; height: 6px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---- Expanded detail panel ---- */
+.node.expandable { cursor: pointer; }
+.node .expand-content {
+  display: none;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #1a1a1a;
+  font-size: 10px;
+  color: #555;
+  line-height: 1.6;
+}
+.node.expanded .expand-content { display: block; }
+.node.expanded { border-color: #555; background: #0f0f0f; }
+
+.node .expand-hint {
+  font-size: 9px;
+  color: #333;
+  position: absolute;
+  bottom: 3px;
+  right: 6px;
+}
+
+/* ---- Loop box ---- */
+.loop-box {
+  border: 1px dashed #2a2a2a;
+  padding: 16px;
+  margin: 12px 0;
+  position: relative;
+}
+.loop-box .loop-label {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  background: #0a0a0a;
+  padding: 0 6px;
+  font-size: 10px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ---- Phase block ---- */
+.phase {
+  border-left: 2px solid #222;
+  padding: 8px 0 8px 14px;
+  margin: 6px 0;
+}
+.phase-num {
+  font-size: 10px;
+  color: #444;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+/* ---- Stats bar ---- */
+.stats {
+  display: flex;
+  gap: 30px;
+  padding: 12px 0;
+  border-top: 1px solid #1a1a1a;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.stat {
+  font-size: 11px;
+}
+.stat .val { color: #e8a020; font-weight: 700; }
+.stat .lbl { color: #555; }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .node-row { flex-direction: column; }
+  .node { min-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<div class="page">
+
+<h1>rattlesnake / claw_cli.py</h1>
+<div class="subtitle">system architecture &amp; data flow &mdash; <span>11,488 lines, single file monolith</span></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#e8a020; background:#e8a02015;"></div> entry point</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#d04040; background:#d0404015;"></div> core loop</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#3090e0; background:#3090e015;"></div> provider / LLM</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#d07020; background:#d0702015;"></div> guard / filter</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#30a060; background:#30a06015;"></div> tool system</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#7050b0; background:#7050b015;"></div> support subsystem</div>
+  <div class="legend-item"><div class="legend-swatch" style="border-color:#808080; background:#80808015;"></div> output / display</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: ENTRY -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">1 &mdash; entry &amp; mode dispatch</div>
+  <div class="node-row centered">
+    <div class="node entry expandable" onclick="tog(this)">
+      <span class="tag">entry</span>
+      <span class="name">main()</span>
+      <span class="loc">:10448</span>
+      <span class="detail">CLI args &rarr; mode dispatch</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        &bull; argparse: --model, --provider, --scaffold, --verify, --one-shot<br>
+        &bull; Provider init: CLAW_PROVIDER env &rarr; _get_provider()<br>
+        &bull; API key validation per provider<br>
+        &bull; Plugin loading: ~/.claw/plugins/*.py<br>
+        &bull; Session resume if --resume flag
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="arrow">&darr;</span></div>
+
+  <div class="node-row centered">
+    <div class="node entry">
+      <span class="tag">branch</span>
+      <span class="name">mode select</span>
+      <span class="loc">:10490&ndash;10642</span>
+    </div>
+  </div>
+
+  <div class="connector"><span class="pipe">├──</span></div>
+
+  <div class="node-row" style="padding-left: 40px;">
+    <div class="node support">
+      <span class="tag">mode</span>
+      <span class="name">--scaffold</span>
+      <span class="loc">:10532</span>
+      <span class="detail">template &rarr; scaffold_project()</span>
+    </div>
+    <div class="node support">
+      <span class="tag">mode</span>
+      <span class="name">--verify</span>
+      <span class="loc">:10606</span>
+      <span class="detail">build-verify-fix loop</span>
+    </div>
+    <div class="node support">
+      <span class="tag">mode</span>
+      <span class="name">one-shot</span>
+      <span class="loc">:10625</span>
+      <span class="detail">prompt &rarr; run_agent_turn &rarr; exit</span>
+    </div>
+    <div class="node entry">
+      <span class="tag">default</span>
+      <span class="name">REPL mode</span>
+      <span class="loc">:10647</span>
+      <span class="detail">interactive loop &darr;</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: REPL LOOP -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">2 &mdash; REPL loop</div>
+
+  <div class="loop-box">
+    <div class="loop-label">while True &mdash; :10656</div>
+
+    <div class="phase">
+      <div class="phase-num">2a. pre-input</div>
+      <div class="node-row">
+        <div class="node support">
+          <span class="tag">watch</span>
+          <span class="name">FileWatcher.pop_changes()</span>
+          <span class="loc">:10658</span>
+          <span class="detail">detect external file changes</span>
+        </div>
+        <div class="node output">
+          <span class="tag">ui</span>
+          <span class="name">draw_input_box()</span>
+          <span class="loc">:10680</span>
+          <span class="detail">╭─ model | turn# ─╮</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><span class="arrow">&darr;</span></div>
+
+    <div class="phase">
+      <div class="phase-num">2b. input dispatch</div>
+      <div class="node-row">
+        <div class="node entry expandable" onclick="tog(this)">
+          <span class="tag">input</span>
+          <span class="name">user_input</span>
+          <span class="loc">:10681</span>
+          <span class="detail">raw text or /command</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            &bull; Multi-line mode: /ml &rarr; read_multiline() :9885<br>
+            &bull; Paste detection: _has_pending_input() :9934<br>
+            &bull; Ctrl+C: save session &amp; exit<br>
+            &bull; Empty input: skip
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">├──</span></div>
+
+      <div class="node-row" style="padding-left: 30px;">
+        <div class="node entry expandable" onclick="tog(this)">
+          <span class="tag">slash</span>
+          <span class="name">/commands</span>
+          <span class="loc">:10705&ndash;11273</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            /help /clear /model /add /drop /files /ml<br>
+            /plan /agents /generate /screenshot /save<br>
+            /resume /status /tokens /undo /think<br>
+            /reflect /quality /wiring /mode /memory<br>
+            &rarr; each handled inline, continue loop
+          </div>
+        </div>
+        <div class="node core">
+          <span class="tag">message</span>
+          <span class="name">&rarr; run_agent_turn()</span>
+          <span class="loc">:9450</span>
+          <span class="detail">regular text &rarr; agent loop</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: AGENT LOOP -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">3 &mdash; agent loop (the core engine)</div>
+
+  <div class="node-row centered">
+    <div class="node core expandable" onclick="tog(this)">
+      <span class="tag">core</span>
+      <span class="name">run_agent_turn()</span>
+      <span class="loc">:9450</span>
+      <span class="detail">messages[] + model &rarr; final text</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        Init: iterations=0, tool_retry_counts={}<br>
+        RepetitionDetector, ReflectionState<br>
+        _ramble_nudges=0 (max 1 per turn)<br>
+        ctx_size = _get_model_context_size()<br>
+        ctx_budget = ctx_size * 0.7<br>
+        Slim prompt swap for local models
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><span class="arrow">&darr;</span></div>
+
+  <div class="loop-box">
+    <div class="loop-label">while True &mdash; max 16 iterations</div>
+
+    <!-- Phase 3a: Pre-call -->
+    <div class="phase">
+      <div class="phase-num">3a. pre-call setup</div>
+      <div class="node-row">
+        <div class="node support">
+          <span class="tag">routing</span>
+          <span class="name">_pick_model_for_task()</span>
+          <span class="loc">:3381</span>
+          <span class="detail">small model for simple tasks (iter 1 only)</span>
+        </div>
+        <div class="node support expandable" onclick="tog(this)">
+          <span class="tag">compress</span>
+          <span class="name">_compress_messages()</span>
+          <span class="loc">:1039</span>
+          <span class="detail">fit messages into ctx_budget</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            1. Keep system prompt (msg[0])<br>
+            2. Keep last 4 messages intact<br>
+            3. Middle: tool results &rarr; 1-line summaries<br>
+            4. Assistant text &rarr; truncate 200ch<br>
+            5. User text &rarr; truncate 300ch<br>
+            6. Drop reflection prompts<br>
+            7. If still over: drop oldest<br>
+            8. Last resort: system + tail only
+          </div>
+        </div>
+        <div class="node support expandable" onclick="tog(this)">
+          <span class="tag">prompt</span>
+          <span name="name" class="name">build_system_prompt()</span>
+          <span class="loc">:8342</span>
+          <span class="detail">compose full system prompt</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            Base identity + environment<br>
+            + CLAW.md project instructions<br>
+            + memories (load_memories_for_context)<br>
+            + codebase map (_build_codebase_map)<br>
+            + active PLAN.md<br>
+            + project profile detection<br>
+            + API pattern context<br>
+            + framework directives<br>
+            + cloud model tool-first reinforcement (Fix D)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><span class="arrow">&darr;</span></div>
+
+    <!-- Phase 3b: LLM call -->
+    <div class="phase">
+      <div class="phase-num">3b. LLM call &amp; streaming</div>
+      <div class="node-row">
+        <div class="node provider expandable" onclick="tog(this)">
+          <span class="tag">llm</span>
+          <span class="name">ollama_chat()</span>
+          <span class="loc">:6670</span>
+          <span class="detail">provider.chat() &rarr; stream chunks</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            Dispatch to active provider:<br>
+            &bull; OllamaProvider :121 (local HTTP)<br>
+            &bull; OpenRouterProvider :212 (SSE stream)<br>
+            &bull; OpenAIProvider :345<br>
+            &bull; AnthropicProvider :397<br><br>
+            Each: format payload &rarr; HTTP &rarr; parse stream &rarr; yield chunks<br>
+            Retry: 3x with exponential backoff<br>
+            Token tracking: _token_tracker.add()
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">│</span></div>
+
+      <div class="node-row" style="padding-left: 50px;">
+        <div class="node core expandable" onclick="tog(this)">
+          <span class="tag">stream</span>
+          <span class="name">streaming loop</span>
+          <span class="loc">:9512&ndash;9590</span>
+          <span class="detail">real-time output with think suppression</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            for chunk in ollama_chat(...):<br>
+            &nbsp;&nbsp;content += chunk<br>
+            &nbsp;&nbsp;if THINKING_ENABLED:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;buffer &lt;think&gt; blocks, suppress<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;flush safe content<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;hold partial "&lt;thi..." tags<br>
+            &nbsp;&nbsp;else: print directly<br>
+            &nbsp;&nbsp;collect tool_calls from chunks<br>
+            Post: flush _pending_print
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><span class="arrow">&darr;</span></div>
+
+    <!-- Phase 3c: Post-stream guards -->
+    <div class="phase">
+      <div class="phase-num">3c. post-stream quality guards</div>
+      <div class="node-row">
+        <div class="node tool">
+          <span class="tag">rescue</span>
+          <span class="name">rescue_tool_calls_from_text()</span>
+          <span class="loc">:8801</span>
+          <span class="detail">extract tool JSON from prose output</span>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">│</span></div>
+
+      <div class="node-row">
+        <div class="node guard expandable" onclick="tog(this)">
+          <span class="tag">fix b</span>
+          <span class="name">_deduplicate_response()</span>
+          <span class="loc">:3074</span>
+          <span class="detail">sliding window dedup &mdash; 300ch chunks, 100ch overlap</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            1. Normalize whitespace<br>
+            2. Hash 300-char chunks (step 200)<br>
+            3. If hash seen before &amp; gap &gt;500ch<br>
+            4. Check region &gt;400ch<br>
+            5. Truncate + "[... repeated content removed]"<br>
+            6. _guard_stats["dedup_fires"]++
+          </div>
+        </div>
+        <div class="node guard expandable" onclick="tog(this)">
+          <span class="tag">fix a</span>
+          <span class="name">ramble guard</span>
+          <span class="loc">:9614</span>
+          <span class="detail">&gt;4000ch + _is_code_dump() &rarr; truncate at sentence</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            Only fires if: no tool_calls AND &gt;4000ch AND<br>
+            _is_code_dump() returns True (&gt;60% code lines)<br><br>
+            _is_code_dump() checks: indentation &ge;4, braces,<br>
+            semicolons, keywords at line start, fences<br><br>
+            Truncation: _truncate_at_sentence() finds<br>
+            last ". " / ".\n" / "?\n" / "!\n" before limit<br><br>
+            Max 1 nudge per turn. If already nudged:<br>
+            pass through + terminal warning<br>
+            _guard_stats["ramble_truncations"]++
+          </div>
+        </div>
+        <div class="node guard">
+          <span class="tag">fix a</span>
+          <span class="name">tools+ramble trim</span>
+          <span class="loc">:9630</span>
+          <span class="detail">has tools + &gt;2000ch text &rarr; strip text from history</span>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">│</span></div>
+
+      <div class="node-row">
+        <div class="node guard expandable" onclick="tog(this)">
+          <span class="tag">think</span>
+          <span class="name">_extract_think_block()</span>
+          <span class="loc">:8976</span>
+          <span class="detail">pull &lt;think&gt;...&lt;/think&gt;, display summary</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            Regex extracts think content<br>
+            _display_thinking(): show collapsed summary<br>
+            Print after-think content that was suppressed<br>
+            THINK_RETRY_ON_MISSING: optionally re-prompt
+          </div>
+        </div>
+        <div class="node guard">
+          <span class="tag">rescue</span>
+          <span class="name">rescue_question_from_text()</span>
+          <span class="loc">:8869</span>
+          <span class="detail">detect question &rarr; interactive ask_user</span>
+        </div>
+        <div class="node guard">
+          <span class="tag">check</span>
+          <span class="name">_is_garbage_output()</span>
+          <span class="loc">:9124</span>
+          <span class="detail">empty/garbled &rarr; re-prompt model</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><span class="arrow">&darr;</span></div>
+
+    <!-- Phase 3d: Decision branch -->
+    <div class="phase">
+      <div class="phase-num">3d. branch: tools or final response?</div>
+
+      <div class="node-row">
+        <div class="node core">
+          <span class="tag">branch</span>
+          <span class="name">has_tool_calls?</span>
+          <span class="loc">:9655</span>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">├── no tools ──────────────────────────────────┐</span></div>
+
+      <!-- NO TOOLS PATH -->
+      <div class="node-row" style="padding-left: 30px;">
+        <div class="node support">
+          <span class="tag">post</span>
+          <span class="name">WiringAgent.run_full_scan()</span>
+          <span class="loc">:5723</span>
+          <span class="detail">cross-file verification (max 2 passes)</span>
+        </div>
+        <div class="node guard">
+          <span class="tag">fix c</span>
+          <span class="name">_strip_structural_html()</span>
+          <span class="loc">:3119</span>
+          <span class="detail">display-only: strip &lt;h1&gt;-&lt;h6&gt; &lt;div&gt; &lt;p&gt; &lt;br&gt; &lt;hr&gt;</span>
+        </div>
+        <div class="node output expandable" onclick="tog(this)">
+          <span class="tag">display</span>
+          <span class="name">markdown re-render</span>
+          <span class="loc">:9708</span>
+          <span class="detail">_render_markdown() + cursor rewrite</span>
+          <span class="expand-hint">+</span>
+          <div class="expand-content">
+            If text has **, ```, ##, #, -:<br>
+            1. Count visual lines (terminal width)<br>
+            2. ANSI cursor up to overwrite raw stream<br>
+            3. Clear lines + reprint with formatting<br>
+            4. _render_markdown() for styled output
+          </div>
+        </div>
+        <div class="node output">
+          <span class="tag">tokens</span>
+          <span class="name">per-turn display</span>
+          <span class="loc">:9724</span>
+          <span class="detail">&uarr;NNk &darr;NNk tokens</span>
+        </div>
+      </div>
+
+      <div class="node-row centered" style="margin-top: 8px;">
+        <div class="node output">
+          <span class="tag">return</span>
+          <span class="name">return final_text</span>
+          <span class="loc">:9728</span>
+          <span class="detail">&rarr; back to REPL</span>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">├── has tools ─────────────────────────────────┘</span></div>
+
+      <!-- TOOLS PATH -->
+      <div class="phase" style="margin-top: 12px;">
+        <div class="phase-num">3e. tool execution</div>
+        <div class="node-row">
+          <div class="node tool expandable" onclick="tog(this)">
+            <span class="tag">dispatch</span>
+            <span class="name">execute_tool()</span>
+            <span class="loc">:6624</span>
+            <span class="detail">name + args &rarr; handler &rarr; result</span>
+            <span class="expand-hint">+</span>
+            <div class="expand-content">
+              1. Lookup handler in TOOL_HANDLERS<br>
+              2. _snapshot_for_undo() (write/edit)<br>
+              3. _slop_score() quality gate (write_file)<br>
+              4. Permission check (EDIT_CONFIRM mode)<br>
+              5. Execute handler function<br>
+              6. Truncate output (max 12000ch)<br>
+              7. _verify_file_write() post-check<br>
+              8. Track in ProjectManifest
+            </div>
+          </div>
+        </div>
+
+        <div class="connector"><span class="pipe">│</span></div>
+
+        <div class="node-row" style="padding-left: 30px;">
+          <div class="node tool expandable" onclick="tog(this)">
+            <span class="tag">parallel</span>
+            <span class="name">_execute_tools_parallel()</span>
+            <span class="loc">:9236</span>
+            <span class="detail">ThreadPoolExecutor(max_workers=4)</span>
+            <span class="expand-hint">+</span>
+            <div class="expand-content">
+              PARALLEL_SAFE_TOOLS: read_file, glob_search,<br>
+              grep_search, web_search, web_fetch,<br>
+              memory_search, db_schema, env_manage<br><br>
+              All other tools: sequential execution
+            </div>
+          </div>
+          <div class="node guard">
+            <span class="tag">retry</span>
+            <span class="name">_apply_retry_and_hints()</span>
+            <span class="loc">:9771</span>
+            <span class="detail">error recovery + hint injection</span>
+          </div>
+          <div class="node output">
+            <span class="tag">display</span>
+            <span class="name">_display_tool_result()</span>
+            <span class="loc">:9300</span>
+            <span class="detail">smart truncation: first 4 + last 2 lines</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><span class="pipe">│</span></div>
+
+      <!-- Phase 3f: loop guards -->
+      <div class="phase">
+        <div class="phase-num">3f. loop guards (prevent stuck loops)</div>
+        <div class="node-row">
+          <div class="node guard expandable" onclick="tog(this)">
+            <span class="tag">detect</span>
+            <span class="name">_RepetitionDetector</span>
+            <span class="loc">:9027</span>
+            <span class="detail">same action 3x in 6 &rarr; break</span>
+            <span class="expand-hint">+</span>
+            <div class="expand-content">
+              Tracks last 12 action signatures<br>
+              Triggers on:<br>
+              &bull; Same action 3x in last 6<br>
+              &bull; Same write content (hash match)<br>
+              &bull; Identical response text
+            </div>
+          </div>
+          <div class="node guard">
+            <span class="tag">reflect</span>
+            <span class="name">_ReflectionState</span>
+            <span class="loc">:9075</span>
+            <span class="detail">inject "pause and reflect" on errors</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="connector"><span class="arrow">&uarr; loop back to 3a</span></div>
+    </div>
+
+  </div><!-- /loop-box -->
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: PROVIDERS -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">4 &mdash; provider system</div>
+  <div class="node-row">
+    <div class="node provider">
+      <span class="tag">abstract</span>
+      <span class="name">LLMProvider</span>
+      <span class="loc">:113</span>
+      <span class="detail">base class: chat(), format payload, retry</span>
+    </div>
+  </div>
+  <div class="connector"><span class="pipe">├── implements ──</span></div>
+  <div class="node-row" style="padding-left: 30px;">
+    <div class="node provider">
+      <span class="tag">local</span>
+      <span class="name">OllamaProvider</span>
+      <span class="loc">:121</span>
+      <span class="detail">HTTP to localhost:11434, JSON stream</span>
+    </div>
+    <div class="node provider">
+      <span class="tag">cloud</span>
+      <span class="name">OpenRouterProvider</span>
+      <span class="loc">:212</span>
+      <span class="detail">SSE stream, _parse_sse_stream()</span>
+    </div>
+    <div class="node provider">
+      <span class="tag">cloud</span>
+      <span class="name">OpenAIProvider</span>
+      <span class="loc">:345</span>
+      <span class="detail">OpenAI API, SSE compat</span>
+    </div>
+    <div class="node provider">
+      <span class="tag">cloud</span>
+      <span class="name">AnthropicProvider</span>
+      <span class="loc">:397</span>
+      <span class="detail">Claude API, native format</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: TOOL SYSTEM -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">5 &mdash; tool system</div>
+  <div class="node-row">
+    <div class="node tool">
+      <span class="tag">core</span>
+      <span class="name">bash</span>
+      <span class="loc">:1899</span>
+      <span class="detail">shell exec + _check_bash_safety()</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">fs</span>
+      <span class="name">read_file</span>
+      <span class="loc">:1950</span>
+      <span class="detail">offset/limit, binary detect</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">fs</span>
+      <span class="name">write_file</span>
+      <span class="loc">:2000</span>
+      <span class="detail">create + quality gate + undo snapshot</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">fs</span>
+      <span class="name">edit_file</span>
+      <span class="loc">:2050</span>
+      <span class="detail">substring replace + undo</span>
+    </div>
+  </div>
+  <div class="node-row">
+    <div class="node tool">
+      <span class="tag">search</span>
+      <span class="name">glob_search</span>
+      <span class="loc">:2100</span>
+      <span class="detail">pattern matching</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">search</span>
+      <span class="name">grep_search</span>
+      <span class="loc">:2130</span>
+      <span class="detail">regex content search</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">interact</span>
+      <span class="name">ask_user</span>
+      <span class="loc">:1163</span>
+      <span class="detail">question + choices &rarr; input</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">web</span>
+      <span class="name">web_search / web_fetch</span>
+      <span class="loc">:2170</span>
+      <span class="detail">internet access</span>
+    </div>
+  </div>
+  <div class="node-row">
+    <div class="node tool">
+      <span class="tag">memory</span>
+      <span class="name">memory_save / memory_search</span>
+      <span class="loc">:1219</span>
+      <span class="detail">persistent key-value store</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">db</span>
+      <span class="name">db_schema</span>
+      <span class="loc">:2599</span>
+      <span class="detail">auto-gen Prisma/Drizzle/SQL</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">scaffold</span>
+      <span class="name">scaffold_project</span>
+      <span class="loc">:6051</span>
+      <span class="detail">structured project gen</span>
+    </div>
+    <div class="node tool">
+      <span class="tag">env</span>
+      <span class="name">env_manage</span>
+      <span class="loc">:2180</span>
+      <span class="detail">env var templates</span>
+    </div>
+  </div>
+  <div class="connector"><span class="pipe">│</span></div>
+  <div class="node-row" style="padding-left: 20px;">
+    <div class="node tool">
+      <span class="tag">plugin</span>
+      <span class="name">_load_plugins()</span>
+      <span class="loc">:2976</span>
+      <span class="detail">~/.claw/plugins/*.py &rarr; TOOL_HANDLERS</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: SAFETY -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">6 &mdash; safety &amp; permissions</div>
+  <div class="node-row">
+    <div class="node guard expandable" onclick="tog(this)">
+      <span class="tag">bash</span>
+      <span class="name">_check_bash_safety()</span>
+      <span class="loc">:2225</span>
+      <span class="detail">block dangerous shell commands</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        Blocks: rm -rf /, sudo, curl|bash,<br>
+        fork bombs, credential leaks,<br>
+        SSH key mods, suspicious npm/pip URLs,<br>
+        git credential config changes
+      </div>
+    </div>
+    <div class="node guard">
+      <span class="tag">size</span>
+      <span class="name">_check_write_size()</span>
+      <span class="loc">:2307</span>
+      <span class="detail">max 1MB per write_file</span>
+    </div>
+    <div class="node guard expandable" onclick="tog(this)">
+      <span class="tag">quality</span>
+      <span class="name">_slop_score()</span>
+      <span class="loc">:4385</span>
+      <span class="detail">code quality gate for writes</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        Detects: placeholder text, missing imports,<br>
+        incomplete code, idiom violations<br>
+        Score threshold triggers rejection
+      </div>
+    </div>
+    <div class="node guard">
+      <span class="tag">mode</span>
+      <span class="name">confirm_tool_execution()</span>
+      <span class="loc">:707</span>
+      <span class="detail">EDIT_CONFIRM: user approves write/edit/bash</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: SUPPORT SUBSYSTEMS -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">7 &mdash; support subsystems</div>
+  <div class="node-row">
+    <div class="node support expandable" onclick="tog(this)">
+      <span class="tag">wiring</span>
+      <span class="name">WiringAgent</span>
+      <span class="loc">:5713</span>
+      <span class="detail">cross-file verification after writes</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        Scans: broken imports, orphaned exports,<br>
+        CSS coherence, API route coherence,<br>
+        missing assets, env var references<br><br>
+        Auto-fixes: missing .env vars, env setup<br>
+        Manual: injects prompt for model to fix<br>
+        Max 2 passes per agent turn
+      </div>
+    </div>
+    <div class="node support">
+      <span class="tag">watch</span>
+      <span class="name">FileWatcher</span>
+      <span class="loc">:3396</span>
+      <span class="detail">daemon thread, 2s poll, skip node_modules</span>
+    </div>
+    <div class="node support">
+      <span class="tag">profile</span>
+      <span class="name">ProjectProfile</span>
+      <span class="loc">:6078</span>
+      <span class="detail">detect framework/styling/tests/naming</span>
+    </div>
+    <div class="node support">
+      <span class="tag">undo</span>
+      <span class="name">_undo_stack</span>
+      <span class="loc">:3142</span>
+      <span class="detail">snapshot before write/edit &rarr; restore</span>
+    </div>
+  </div>
+  <div class="node-row">
+    <div class="node support">
+      <span class="tag">tokens</span>
+      <span class="name">TokenTracker</span>
+      <span class="loc">:3011</span>
+      <span class="detail">cumulative prompt/completion/requests</span>
+    </div>
+    <div class="node support expandable" onclick="tog(this)">
+      <span class="tag">drip</span>
+      <span class="name">DripContext + chunked gen</span>
+      <span class="loc">:6899</span>
+      <span class="detail">decompose &rarr; generate &rarr; assemble</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        DripContext: tracks CSS classes, JS functions,<br>
+        HTML IDs, py symbols across chunks<br><br>
+        Decomposers: _drip_decompose_python/js/css<br>
+        Generation: parallel by group via ThreadPool<br>
+        Assembly: file-type rules (_ASSEMBLY_RULES)
+      </div>
+    </div>
+    <div class="node support expandable" onclick="tog(this)">
+      <span class="tag">agents</span>
+      <span class="name">SubAgent system</span>
+      <span class="loc">:1327</span>
+      <span class="detail">parallel task workers via /agents</span>
+      <span class="expand-hint">+</span>
+      <div class="expand-content">
+        SubAgentResult: status/tokens/output tracking<br>
+        _run_subagent_worker: 12-iter mini agent loop<br>
+        run_subagents: ThreadPoolExecutor per task<br>
+        /plan run-all: decompose into parallel groups<br>
+        _draw_agent_tree: ASCII progress visualization
+      </div>
+    </div>
+    <div class="node support">
+      <span class="tag">session</span>
+      <span class="name">save / load / resume</span>
+      <span class="loc">:3180</span>
+      <span class="detail">~/.claw/sessions/{id}.json</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: GUARD TELEMETRY -->
+<!-- ============================================================ -->
+<div class="flow-section">
+  <div class="section-label">8 &mdash; guard telemetry (fix e)</div>
+  <div class="node-row">
+    <div class="node guard">
+      <span class="tag">counter</span>
+      <span class="name">_guard_stats{}</span>
+      <span class="loc">:3030</span>
+      <span class="detail">ramble_truncations | dedup_fires | html_strips</span>
+    </div>
+    <div class="node output">
+      <span class="tag">display</span>
+      <span class="name">/tokens + /status</span>
+      <span class="loc">:11399, 11277</span>
+      <span class="detail">show guard fire counts when non-zero</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STATS -->
+<!-- ============================================================ -->
+<div class="stats">
+  <div class="stat"><span class="val">11,488</span> <span class="lbl">lines</span></div>
+  <div class="stat"><span class="val">14</span> <span class="lbl">built-in tools</span></div>
+  <div class="stat"><span class="val">4</span> <span class="lbl">LLM providers</span></div>
+  <div class="stat"><span class="val">6</span> <span class="lbl">output guards</span></div>
+  <div class="stat"><span class="val">16</span> <span class="lbl">max iterations</span></div>
+  <div class="stat"><span class="val">20+</span> <span class="lbl">slash commands</span></div>
+  <div class="stat"><span class="val">1</span> <span class="lbl">file monolith</span></div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+function tog(el) {
+  el.classList.toggle('expanded');
+  const hint = el.querySelector('.expand-hint');
+  if (hint) hint.textContent = el.classList.contains('expanded') ? '−' : '+';
+}
+
+// subtle dot grid background
+const canvas = document.getElementById('canvas-bg');
+const ctx = canvas.getContext('2d');
+function drawGrid() {
+  canvas.width = window.innerWidth;
+  canvas.height = document.body.scrollHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#151515';
+  const gap = 30;
+  for (let x = gap; x < canvas.width; x += gap) {
+    for (let y = gap; y < canvas.height; y += gap) {
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+drawGrid();
+window.addEventListener('resize', drawGrid);
+// redraw after layout settles
+setTimeout(drawGrid, 500);
+</script>
+
+</body>
+</html>

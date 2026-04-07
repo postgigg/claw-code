@@ -1,0 +1,81 @@
+{
+  "name": "database",
+  "description": "Database-agnostic schema patterns — PostgreSQL, SQLite, Supabase, Prisma, Drizzle",
+  "schema_patterns": {
+    "postgresql": {
+      "description": "Raw PostgreSQL schema patterns",
+      "create_table": "CREATE TABLE IF NOT EXISTS users (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  email TEXT UNIQUE NOT NULL,\n  password_hash TEXT NOT NULL,\n  display_name TEXT,\n  avatar_url TEXT,\n  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),\n  email_verified BOOLEAN DEFAULT FALSE,\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);",
+      "indexes": "CREATE INDEX idx_users_email ON users(email);\nCREATE INDEX idx_users_created_at ON users(created_at DESC);",
+      "trigger_updated_at": "CREATE OR REPLACE FUNCTION update_updated_at()\nRETURNS TRIGGER AS $$\nBEGIN\n  NEW.updated_at = NOW();\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql;\n\nCREATE TRIGGER set_updated_at\n  BEFORE UPDATE ON users\n  FOR EACH ROW EXECUTE FUNCTION update_updated_at();",
+      "rls": "ALTER TABLE users ENABLE ROW LEVEL SECURITY;\n\nCREATE POLICY \"Users can read own data\" ON users\n  FOR SELECT USING (auth.uid() = id);\n\nCREATE POLICY \"Users can update own data\" ON users\n  FOR UPDATE USING (auth.uid() = id);",
+      "foreign_keys": "CREATE TABLE posts (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n  title TEXT NOT NULL,\n  content TEXT,\n  published BOOLEAN DEFAULT FALSE,\n  created_at TIMESTAMPTZ DEFAULT NOW()\n);"
+    },
+    "sqlite": {
+      "description": "SQLite schema patterns (for local/embedded)",
+      "create_table": "CREATE TABLE IF NOT EXISTS users (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  email TEXT UNIQUE NOT NULL,\n  password_hash TEXT NOT NULL,\n  display_name TEXT,\n  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),\n  email_verified INTEGER DEFAULT 0,\n  created_at TEXT DEFAULT (datetime('now')),\n  updated_at TEXT DEFAULT (datetime('now'))\n);",
+      "indexes": "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);",
+      "python_usage": "import sqlite3\n\ndef get_db():\n    conn = sqlite3.connect('app.db')\n    conn.row_factory = sqlite3.Row\n    conn.execute('PRAGMA journal_mode=WAL')\n    conn.execute('PRAGMA foreign_keys=ON')\n    return conn",
+      "node_usage": "import Database from 'better-sqlite3';\n\nconst db = new Database('app.db', { verbose: console.log });\ndb.pragma('journal_mode = WAL');\ndb.pragma('foreign_keys = ON');"
+    },
+    "prisma": {
+      "description": "Prisma ORM schema patterns",
+      "setup": "npm install prisma @prisma/client\nnpx prisma init",
+      "schema": "// prisma/schema.prisma\ngenerator client {\n  provider = \"prisma-client-js\"\n}\n\ndatasource db {\n  provider = \"postgresql\" // or \"sqlite\", \"mysql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id            String   @id @default(cuid())\n  email         String   @unique\n  passwordHash  String   @map(\"password_hash\")\n  displayName   String?  @map(\"display_name\")\n  avatarUrl     String?  @map(\"avatar_url\")\n  role          Role     @default(USER)\n  emailVerified Boolean  @default(false) @map(\"email_verified\")\n  createdAt     DateTime @default(now()) @map(\"created_at\")\n  updatedAt     DateTime @updatedAt @map(\"updated_at\")\n  posts         Post[]\n\n  @@map(\"users\")\n}\n\nmodel Post {\n  id        String   @id @default(cuid())\n  title     String\n  content   String?\n  published Boolean  @default(false)\n  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)\n  authorId  String   @map(\"author_id\")\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  @@map(\"posts\")\n}\n\nenum Role {\n  USER\n  ADMIN\n  MODERATOR\n}",
+      "commands": "npx prisma migrate dev --name init    # Create migration & apply\nnpx prisma generate                    # Generate client\nnpx prisma db push                     # Push schema without migration\nnpx prisma studio                      # Visual DB editor\nnpx prisma db seed                     # Run seed script",
+      "client_usage": "import { PrismaClient } from '@prisma/client';\n\nconst prisma = new PrismaClient();\n\n// Create\nconst user = await prisma.user.create({\n  data: { email, passwordHash },\n});\n\n// Read with relations\nconst userWithPosts = await prisma.user.findUnique({\n  where: { id },\n  include: { posts: true },\n});\n\n// Update\nawait prisma.user.update({\n  where: { id },\n  data: { displayName },\n});\n\n// Delete (cascades to posts)\nawait prisma.user.delete({ where: { id } });\n\n// Transaction\nawait prisma.$transaction([...]);",
+      "env_var": "DATABASE_URL"
+    },
+    "drizzle": {
+      "description": "Drizzle ORM schema patterns",
+      "setup": "npm install drizzle-orm drizzle-kit\nnpm install @neondatabase/serverless  # for Neon\nnpm install pg                        # for node-postgres",
+      "schema": "// src/db/schema.ts\nimport { pgTable, uuid, text, boolean, timestamp } from 'drizzle-orm/pg-core';\n\nexport const users = pgTable('users', {\n  id: uuid('id').primaryKey().defaultRandom(),\n  email: text('email').unique().notNull(),\n  passwordHash: text('password_hash').notNull(),\n  displayName: text('display_name'),\n  role: text('role').default('user'),\n  emailVerified: boolean('email_verified').default(false),\n  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),\n  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),\n});\n\nexport const posts = pgTable('posts', {\n  id: uuid('id').primaryKey().defaultRandom(),\n  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),\n  title: text('title').notNull(),\n  content: text('content'),\n  published: boolean('published').default(false),\n  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),\n});",
+      "commands": "npx drizzle-kit generate    # Generate migration SQL\nnpx drizzle-kit migrate      # Run migrations\nnpx drizzle-kit push         # Push schema directly\nnpx drizzle-kit studio       # Visual browser UI",
+      "client_usage": "import { drizzle } from 'drizzle-orm/neon-http';\nimport { neon } from '@neondatabase/serverless';\nimport * as schema from './schema';\n\nconst sql = neon(process.env.DATABASE_URL!);\nexport const db = drizzle(sql, { schema });\n\n// Queries\nconst allUsers = await db.select().from(schema.users);\nconst user = await db.select().from(schema.users).where(eq(schema.users.id, id));\nawait db.insert(schema.users).values({ email, passwordHash });\nawait db.update(schema.users).set({ displayName }).where(eq(schema.users.id, id));\nawait db.delete(schema.users).where(eq(schema.users.id, id));",
+      "env_var": "DATABASE_URL"
+    },
+    "supabase_schema": {
+      "description": "Supabase-specific SQL schema with RLS",
+      "create_table": "-- Supabase uses PostgreSQL, link user_id to auth.users\nCREATE TABLE IF NOT EXISTS public.profiles (\n  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,\n  email TEXT UNIQUE NOT NULL,\n  display_name TEXT,\n  avatar_url TEXT,\n  role TEXT DEFAULT 'user',\n  created_at TIMESTAMPTZ DEFAULT NOW(),\n  updated_at TIMESTAMPTZ DEFAULT NOW()\n);\n\n-- Enable RLS (CRITICAL for Supabase)\nALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;\n\n-- Policies\nCREATE POLICY \"Public profiles are viewable\" ON public.profiles\n  FOR SELECT USING (true);\n\nCREATE POLICY \"Users can update own profile\" ON public.profiles\n  FOR UPDATE USING (auth.uid() = id);\n\n-- Auto-create profile on signup\nCREATE OR REPLACE FUNCTION public.handle_new_user()\nRETURNS TRIGGER AS $$\nBEGIN\n  INSERT INTO public.profiles (id, email)\n  VALUES (NEW.id, NEW.email);\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql SECURITY DEFINER;\n\nCREATE TRIGGER on_auth_user_created\n  AFTER INSERT ON auth.users\n  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();",
+      "env_vars": ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]
+    }
+  },
+  "migration_patterns": {
+    "prisma": {
+      "create": "npx prisma migrate dev --name <migration_name>",
+      "deploy": "npx prisma migrate deploy",
+      "reset": "npx prisma migrate reset",
+      "status": "npx prisma migrate status"
+    },
+    "drizzle": {
+      "create": "npx drizzle-kit generate",
+      "deploy": "npx drizzle-kit migrate",
+      "push": "npx drizzle-kit push"
+    },
+    "raw_sql": {
+      "up": "-- migrations/001_create_users.sql\nBEGIN;\nCREATE TABLE IF NOT EXISTS users ( ... );\nCOMMIT;",
+      "down": "-- migrations/001_create_users_down.sql\nBEGIN;\nDROP TABLE IF EXISTS users CASCADE;\nCOMMIT;"
+    }
+  },
+  "common_mistakes": [
+    "Not enabling RLS on Supabase tables — anyone can read all data",
+    "Using TEXT for passwords instead of hashing — NEVER store plaintext passwords",
+    "Missing ON DELETE CASCADE — orphaned rows after parent deletion",
+    "No indexes on frequently queried columns — query performance degrades",
+    "Using SERIAL instead of UUID for public-facing IDs — sequential IDs are guessable",
+    "Not using transactions for multi-table operations — partial writes corrupt data",
+    "Storing timestamps without timezone — timezone bugs in production",
+    "Missing UNIQUE constraints on email/username — duplicate accounts",
+    "Not validating input before INSERT — SQL injection if using raw queries",
+    "Forgetting to run migrations in production — schema drift"
+  ],
+  "security_requirements": [
+    "ALWAYS hash passwords with bcrypt/argon2 — NEVER store plaintext",
+    "ALWAYS use parameterized queries — NEVER concatenate user input into SQL",
+    "ALWAYS enable RLS when using Supabase — data is public without it",
+    "ALWAYS use UUIDs for public-facing IDs — sequential IDs are enumerable",
+    "ALWAYS validate and sanitize input before database operations",
+    "NEVER expose database credentials in client-side code",
+    "NEVER use the service_role key on the client — anon key only",
+    "ALWAYS set up proper foreign key constraints with ON DELETE behavior"
+  ]
+}

@@ -57,7 +57,7 @@ if sys.platform == "win32":
 # ---------------------------------------------------------------------------
 
 OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-DEFAULT_MODEL = os.environ.get("CLAW_MODEL", "qwen/qwen3.6-plus:free")
+DEFAULT_MODEL = os.environ.get("CLAW_MODEL", "qwen/qwen3-coder:free")
 DEFAULT_VISION_MODEL = os.environ.get("CLAW_VISION_MODEL", "llama3.2-vision:11b")
 MAX_ITERATIONS = 128
 TOOL_OUTPUT_LIMIT = 12000
@@ -82,7 +82,7 @@ WIRING_ENABLED = os.environ.get("CLAW_WIRING", "1") != "0"
 
 # Multi-provider support
 PROVIDER = os.environ.get("CLAW_PROVIDER", "openrouter")
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
@@ -715,12 +715,39 @@ class AnthropicProvider(LLMProvider):
 # Provider singleton
 _provider_instance = None
 
+_PROVIDER_KEY_REQUIREMENTS = {
+    "openrouter": ("OPENROUTER_API_KEY", OPENROUTER_API_KEY, "https://openrouter.ai/keys"),
+    "openai":     ("OPENAI_API_KEY",     OPENAI_API_KEY,     "https://platform.openai.com/api-keys"),
+    "anthropic":  ("ANTHROPIC_API_KEY",  ANTHROPIC_API_KEY,  "https://console.anthropic.com/settings/keys"),
+    "dashscope":  ("DASHSCOPE_API_KEY",  DASHSCOPE_API_KEY,  "https://dashscope.console.aliyun.com/apiKey"),
+}
+
+def _check_provider_credentials(provider_name):
+    """Fail fast with a human-readable message if the required API key is missing."""
+    req = _PROVIDER_KEY_REQUIREMENTS.get(provider_name.lower())
+    if req is None:
+        return  # ollama / unknown → no key required
+    env_name, value, url = req
+    if not value:
+        sys.stderr.write(
+            f"\nRattlesnake: {env_name} is not set.\n"
+            f"  Provider: {provider_name}\n"
+            f"  Set it with:   set {env_name}=...   (Windows cmd)\n"
+            f"                 $env:{env_name}=\"...\"  (PowerShell)\n"
+            f"                 export {env_name}=...  (bash)\n"
+            f"  Get a key:     {url}\n"
+            f"  Or switch provider:  set CLAW_PROVIDER=ollama   (local, no key)\n\n"
+        )
+        sys.exit(2)
+
+
 def _get_provider():
     """Return the active LLM provider based on PROVIDER config."""
     global _provider_instance
     if _provider_instance is not None:
         return _provider_instance
     p = PROVIDER.lower()
+    _check_provider_credentials(p)
     if p == "openrouter":
         _provider_instance = OpenRouterProvider()
     elif p == "openai":
@@ -4177,23 +4204,45 @@ def _run_tests(project_dir, model=None, messages=None):
 # multi-model routing (feature 6)
 # ---------------------------------------------------------------------------
 
-_SIMPLE_TASK_PATTERNS = re.compile(
-    r'^(read_file|glob_search|grep_search|memory_search|ask_user)$'
-)
-
-def _should_use_small_model(tool_name):
-    """Return True if this tool call can be handled by the fast small model."""
-    return bool(_SIMPLE_TASK_PATTERNS.match(tool_name))
+# Tools that are read-only and safe to resolve with the small/cheap model.
+# Writing, execution, and multi-file reasoning stay on the main model.
+SMALL_MODEL_SAFE_TOOLS = frozenset({
+    "read_file",
+    "glob_search",
+    "grep_search",
+    "memory_search",
+    "ask_user",
+    "web_search",
+    "web_fetch",
+    "env_manage",
+    "db_schema",
+})
 
 def _pick_model_for_task(messages, default_model):
-    """Analyze the latest message and decide if we can use the small model."""
+    """
+    Choose the main model at the top of a user turn.
+    Kept as a coarse-grained hook — per-tool-call routing happens elsewhere.
+    """
     if not messages:
         return default_model
     last = messages[-1].get("content", "")
-    # Short questions, status checks, simple reads → small model
     if len(last) < 100 and any(w in last.lower() for w in ("what is", "show me", "list", "how many", "status")):
         return SMALL_MODEL
     return default_model
+
+def _pick_model_for_tool_call(tool_calls):
+    """
+    Per-tool-call routing: if every requested tool call is read-only/cheap,
+    the response composing that result can be handled by the small model.
+    Any write, exec, or scaffold call forces the main model.
+    """
+    if not tool_calls:
+        return None
+    for tc in tool_calls:
+        name = (tc.get("function") or {}).get("name") or tc.get("name")
+        if name not in SMALL_MODEL_SAFE_TOOLS:
+            return None  # main model required
+    return SMALL_MODEL
 
 
 # ---------------------------------------------------------------------------
@@ -15333,10 +15382,9 @@ def run_agent_turn(messages, model, use_tools=True):
             slim = _build_slim_system_prompt()
             messages[0]["content"] = slim
 
-    # Multi-model routing: use small model for simple follow-up turns
+    # Coarse intent-based pick for iteration 1. Fine-grained per-tool-call
+    # routing inside the loop overrides this on later iterations.
     active_model = _pick_model_for_task(messages, model)
-    if active_model != model:
-        print(f"  {C.SUBTLE}routing → {active_model}{C.RESET}")
 
     _compaction_count = 0  # track how many times we auto-compacted this turn
 
@@ -15356,15 +15404,64 @@ def run_agent_turn(messages, model, use_tools=True):
                 if _step_ctx and messages[0].get("role") == "system":
                     messages[0]["content"] += f"\n\n{_step_ctx}"
 
+    # Per-tool-call routing state.
+    # If the small model ever produced malformed output that had to be rescued,
+    # we stick to the main model for the rest of this user turn.
+    _small_model_disqualified = False
+
+    # ---------- SYNTHETIC [SYSTEM:...] NUDGE BUDGET ----------
+    # Guardrails (ramble, hallucinated-fix, anti-plan-loop, stall, etc.) each
+    # inject a synthetic user message when the model misbehaves. Stacking more
+    # than a few of them per turn pollutes context and makes weak models worse,
+    # not better. Cap total nudges and merge consecutive ones.
+    _NUDGE_BUDGET_PER_TURN = 2
+    _nudges_used = 0
+
+    def _inject_nudge(text):
+        """Append a synthetic [SYSTEM:...] user message, capped per turn.
+
+        If the previous message is already a [SYSTEM:...] nudge, merge into
+        it instead of appending another one — keeps rescue pressure from
+        multiplying across one misstep.
+        """
+        nonlocal _nudges_used
+        if _nudges_used >= _NUDGE_BUDGET_PER_TURN:
+            print(f"  {C.SUBTLE}(nudge suppressed — budget reached){C.RESET}")
+            return False
+        if messages and messages[-1].get("role") == "user":
+            prev = messages[-1].get("content", "")
+            if isinstance(prev, str) and prev.startswith("[SYSTEM:"):
+                messages[-1]["content"] = prev.rstrip() + "\n" + text
+                return True
+        messages.append({"role": "user", "content": text})
+        _nudges_used += 1
+        return True
+
     while True:
         iterations += 1
         if iterations > MAX_ITERATIONS:
             print(f"\n  {C.ERROR}{BLACK_CIRCLE} Stopped: hit {MAX_ITERATIONS} iteration limit{C.RESET}")
             break
 
-        # After first iteration with tool calls, switch back to main model
-        # (small model is only for the initial simple response)
-        turn_model = active_model if iterations == 1 else model
+        # ---------- PER-TOOL-CALL ROUTING ----------
+        # Iteration 1: honor the coarse intent-based pick (active_model).
+        # Later iterations: if the LAST assistant message called only cheap,
+        # read-only tools, let the small model summarize/decide what's next.
+        # Any write, exec, or scaffold call forces the main model.
+        if iterations == 1:
+            turn_model = active_model
+        elif _small_model_disqualified:
+            turn_model = model
+        else:
+            last_assistant_calls = None
+            for _m in reversed(messages):
+                if _m.get("role") == "assistant":
+                    last_assistant_calls = _m.get("tool_calls")
+                    break
+            routed = _pick_model_for_tool_call(last_assistant_calls) if last_assistant_calls else None
+            turn_model = routed or model
+        if turn_model != model:
+            print(f"  {C.SUBTLE}routing → {turn_model}{C.RESET}")
 
         full_message = {"role": "assistant", "content": ""}
         tool_calls = []
@@ -15487,6 +15584,10 @@ def run_agent_turn(messages, model, use_tools=True):
                 has_tool_calls = True
                 tool_calls = rescued_calls
                 full_message["content"] = rescued_text
+                # Malformed output: if it came from the small model, disqualify
+                # it for the rest of the turn so we don't keep re-rescuing.
+                if turn_model == SMALL_MODEL and turn_model != model:
+                    _small_model_disqualified = True
 
         # --- Output quality guards (Fix A/B/C) ---
         _display_content = full_message["content"]  # display copy (guards modify this, not stored)
@@ -15510,7 +15611,7 @@ def run_agent_turn(messages, model, use_tools=True):
                     _ramble_nudges += 1
                     # Nudge the model to use tools instead
                     messages.append({"role": "assistant", "content": _display_content})
-                    messages.append({"role": "user", "content": "[SYSTEM: Your response was truncated because you output code as text. Use write_file or edit_file tools instead of showing code in chat. Keep text responses to brief status updates.]"})
+                    _inject_nudge("[SYSTEM: Your response was truncated because you output code as text. Use write_file or edit_file tools instead of showing code in chat. Keep text responses to brief status updates.]")
                     continue
 
         # Fix A: "tools + ramble" — if tools used but >2000 chars of text, trim text from history
@@ -15577,27 +15678,27 @@ def run_agent_turn(messages, model, use_tools=True):
             has_plan_text = bool(re.search(r"(?:i'?ll|let me|i will|i need to)\s+(?:create|write|set up|start|build|make)", content, re.IGNORECASE))
             if has_code_blocks or has_command_instructions or has_file_content or has_heres_file:
                 messages.append({"role": "assistant", "content": content})
-                messages.append({"role": "user", "content": (
+                _inject_nudge(
                     "[SYSTEM: VIOLATION — You showed commands/code as text instead of using your tools. "
                     "You are an AGENT. Do NOT tell the user to run commands or show file contents. "
                     "YOU must call write_file to create files, edit_file to modify files, bash to run commands. "
                     "Create the NEXT file now using write_file. No more text — just tool calls.]"
-                )})
+                )
                 continue
             # Anti-plan-loop: if model keeps saying "I'll create..." without doing it
             if has_plan_text and not has_code_blocks and iterations > 2:
                 messages.append({"role": "assistant", "content": content})
-                messages.append({"role": "user", "content": (
+                _inject_nudge(
                     "[SYSTEM: You're describing what you'll do instead of DOING it. "
                     "STOP PLANNING. Call write_file RIGHT NOW to create the next file. "
                     "No more explanations — just tool calls.]"
-                )})
+                )
                 continue
 
         # 7c: Garbage output detection — re-prompt if garbled
         if not has_tool_calls and _is_garbage_output(full_message["content"]) and iterations < MAX_ITERATIONS:
             messages.append({"role": "assistant", "content": full_message["content"] or ""})
-            messages.append({"role": "user", "content": "[SYSTEM: Your previous response was empty or garbled. Please try again with a clear response.]"})
+            _inject_nudge("[SYSTEM: Your previous response was empty or garbled. Please try again with a clear response.]")
             continue
 
         assistant_msg = {"role": "assistant", "content": full_message["content"]}
@@ -15611,12 +15712,12 @@ def run_agent_turn(messages, model, use_tools=True):
             if _wiring_prompt_pending and _wiring_pass_count < 3:
                 _wiring_prompt_pending = False
                 _wiring_pass_count += 1
-                messages.append({"role": "user", "content": (
+                _inject_nudge(
                     "[SYSTEM: VIOLATION — You described fixes as text instead of using tools. "
                     "Your response did NOT modify any files. The wiring issues STILL EXIST. "
                     "You MUST use write_file or edit_file to actually fix each issue. "
                     "Do not explain — call the tools NOW.]"
-                )})
+                )
                 _files_written_this_turn = False
                 continue
 
@@ -15861,12 +15962,12 @@ def run_agent_turn(messages, model, use_tools=True):
             src_files = [f for f in src_files if 'node_modules' not in f and '.next' not in f]
             if len(src_files) == 0:
                 print(f"  {C.WARNING}{BLACK_CIRCLE} Stall detected: {iterations} iterations, no source files created{C.RESET}")
-                messages.append({"role": "user", "content": (
+                _inject_nudge(
                     "[SYSTEM: STALL DETECTED — You have run " + str(iterations) + " iterations but created ZERO source files. "
                     "STOP planning, reading, and thinking. START creating files NOW. "
                     "Call write_file immediately to create the first source code file. "
                     "Do NOT write another plan. Do NOT explain what you'll do. Just call write_file.]"
-                )})
+                )
                 continue
 
         # --- Self-reflection injection ---

@@ -1,0 +1,5 @@
+Create a Python file named hello.py in the current directory that, when run with `python hello.py`, prints exactly this line and nothing else:
+
+Hello, Rattlesnake!
+
+Do not create any other files. Use the write_file tool.

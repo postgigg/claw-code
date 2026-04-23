@@ -1,0 +1,9 @@
+Write fizzbuzz.py that prints the classic FizzBuzz sequence for numbers 1 through 15, one value per line.
+
+Rules:
+- Multiples of 3 print "Fizz"
+- Multiples of 5 print "Buzz"
+- Multiples of 15 print "FizzBuzz"
+- Otherwise print the number itself
+
+No extra output. Use the write_file tool.

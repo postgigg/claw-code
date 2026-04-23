@@ -6,6 +6,9 @@ node_modules/
 dist/
 .port_sessions/
 
+# E2E runner artifacts
+tests/e2e/results/
+
 # Secrets — auto-added by Rattlesnake security
 .env
 .env.development

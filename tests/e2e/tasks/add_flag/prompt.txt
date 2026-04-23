@@ -1,0 +1,9 @@
+There is a file named cli.py in the current directory. It currently prints "Hello, World!" when run.
+
+Modify cli.py so it accepts an optional --name command-line flag. When the flag is provided, the script should print "Hello, <name>!" using that value. When the flag is omitted, the script should still print "Hello, World!" exactly as before.
+
+Requirements:
+- Use argparse from the Python standard library.
+- Do not create new files; edit cli.py in place with edit_file or write_file.
+- Running `python cli.py` (no args) must print: Hello, World!
+- Running `python cli.py --name Alice` must print: Hello, Alice!

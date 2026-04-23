@@ -1,0 +1,1 @@
+There is a file named data.txt in the current directory. Read it, count how many non-empty lines it contains, and write that number (as a plain integer, no other text) to a new file named count.txt in the same directory. Use the read_file and write_file tools.

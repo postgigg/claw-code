@@ -57,7 +57,10 @@ if sys.platform == "win32":
 # ---------------------------------------------------------------------------
 
 OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-DEFAULT_MODEL = os.environ.get("CLAW_MODEL", "qwen/qwen3-coder:free")
+# Local-first by default — Rattlesnake is built for the "lead → gold" pattern:
+# a small cheap local model orchestrated to perform like a big cloud model.
+# CLAW_MODEL env var + --model flag still override for cloud runs.
+DEFAULT_MODEL = os.environ.get("CLAW_MODEL", "qwen2.5-coder:14b")
 DEFAULT_VISION_MODEL = os.environ.get("CLAW_VISION_MODEL", "llama3.2-vision:11b")
 MAX_ITERATIONS = 128
 TOOL_OUTPUT_LIMIT = 12000
@@ -67,7 +70,7 @@ OLLAMA_STREAM_TIMEOUT = int(os.environ.get("CLAW_TIMEOUT", "1800"))  # 30 min de
 OLLAMA_SYNC_TIMEOUT = int(os.environ.get("CLAW_TIMEOUT", "1800"))    # 30 min default
 CWD = os.getcwd()
 SCRIPT_DIR = Path(__file__).resolve().parent
-SMALL_MODEL = os.environ.get("CLAW_SMALL_MODEL", "deepseek/deepseek-chat-v3-0324")  # fast model for simple tasks
+SMALL_MODEL = os.environ.get("CLAW_SMALL_MODEL", "llama3.2:1b")  # tiny local model for read-only tool summarization
 SESSIONS_DIR = Path.home() / ".claw" / "sessions"
 SNAPSHOTS_DIR = Path.home() / ".claw" / "snapshots"
 
@@ -80,8 +83,9 @@ ANTIREPEAT_THRESHOLD = 3      # trigger after N similar actions
 THINK_RETRY_ON_MISSING = True # retry once if model omits <think> tags
 WIRING_ENABLED = os.environ.get("CLAW_WIRING", "1") != "0"
 
-# Multi-provider support
-PROVIDER = os.environ.get("CLAW_PROVIDER", "openrouter")
+# Multi-provider support. Default is local Ollama — cloud providers are
+# opt-in via CLAW_PROVIDER=openrouter|openai|anthropic|dashscope.
+PROVIDER = os.environ.get("CLAW_PROVIDER", "ollama")
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")

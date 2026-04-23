@@ -53,9 +53,10 @@ I've been deeply interested in **harness engineering** — studying how agent sy
 
 The main source tree is now Python-first.
 
-- `src/` contains the active Python porting workspace
-- `tests/` verifies the current Python workspace
-- the exposed snapshot is no longer part of the tracked repository state
+- **`claw_cli.py`** at the repo root is the shipping entry point and runtime (the actual CLI users run).
+- **`src/`** holds the Python porting workspace — dataclasses, manifests, and command/tool inventory metadata that describe the ongoing port. It does **not** contain the live runtime today.
+- **`tests/`** verifies both the CLI and the porting-workspace metadata.
+- the exposed snapshot is no longer part of the tracked repository state.
 
 The current Python workspace is not yet a complete one-to-one replacement for the original system, but the primary implementation surface is now Python.
 
@@ -69,7 +70,11 @@ This repository now focuses on Python porting work instead.
 
 ```text
 .
-├── src/                                # Python porting workspace
+├── claw_cli.py                         # Shipping CLI entry point (Rattlesnake runtime)
+├── prompts/                            # Modular system-prompt sections
+├── apis/                               # API pattern registry (correct usage snippets)
+├── templates/                          # Project scaffolding templates
+├── src/                                # Python porting workspace (metadata only)
 │   ├── __init__.py
 │   ├── commands.py
 │   ├── main.py
@@ -81,6 +86,7 @@ This repository now focuses on Python porting work instead.
 ├── tests/                              # Python verification
 ├── assets/omx/                         # OmX workflow screenshots
 ├── 2026-03-09-is-legal-the-same-as-legitimate-ai-reimplementation-and-the-erosion-of-copyleft.md
+├── CLAW.md                             # Project rules for the agent
 └── README.md
 ```
 

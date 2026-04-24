@@ -206,8 +206,8 @@ def main() -> int:
     )
     parser.add_argument("--task", help="Run only the named task")
     parser.add_argument("--model", help="Override CLAW_MODEL for this run")
-    parser.add_argument("--timeout", type=int, default=300,
-                        help="Per-task timeout in seconds (default: 300)")
+    parser.add_argument("--timeout", type=int, default=900,
+                        help="Per-task timeout in seconds (default: 900 — local inference is slow)")
     parser.add_argument("--dry-run", action="store_true",
                         help="List tasks without invoking Rattlesnake")
     parser.add_argument("--keep-temp", action="store_true",

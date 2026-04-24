@@ -29,6 +29,14 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY", "")
 
+# Low temperature for agent work — Ollama default (0.8) makes tool-call
+# emission stochastic, so identical tasks can pass once and fail next run.
+# Override via CLAW_TEMP env var.
+try:
+    CLAW_TEMPERATURE = float(os.environ.get("CLAW_TEMP", "0.2"))
+except ValueError:
+    CLAW_TEMPERATURE = 0.2
+
 _CLOUD_CONTEXT_SIZES = {
     "claude": 200000, "gpt-4o": 128000, "gpt-4": 128000, "gpt-3.5": 16385,
     "llama": 131072, "qwen": 32768, "mistral": 32768, "deepseek": 65536,
@@ -74,7 +82,7 @@ class OllamaProvider(LLMProvider):
             "model": model,
             "messages": messages,
             "stream": stream,
-            "options": {"num_ctx": num_ctx},
+            "options": {"num_ctx": num_ctx, "temperature": CLAW_TEMPERATURE},
         }
         if tools:
             payload["tools"] = tools

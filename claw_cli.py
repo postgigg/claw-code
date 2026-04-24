@@ -57,10 +57,16 @@ if sys.platform == "win32":
 # ---------------------------------------------------------------------------
 
 OLLAMA_BASE = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-# Local-first by default — Rattlesnake is built for the "lead → gold" pattern:
-# a small cheap local model orchestrated to perform like a big cloud model.
-# CLAW_MODEL env var + --model flag still override for cloud runs.
-DEFAULT_MODEL = os.environ.get("CLAW_MODEL", "qwen2.5-coder:14b")
+# Local-first by default — Rattlesnake is built for the "lead → gold" pattern.
+# Model choice matters for tool-calling reliability:
+#   qwen3:14b           — emits structured tool_calls, but slow (reasoning model,
+#                         2–4 min per inference on consumer hardware).
+#   qwen2.5-coder:7b    — emits VALID JSON as text content; rescue parser
+#                         recovers it. ~2× faster than 14B. Chosen as default.
+#   qwen2.5-coder:14b   — emits malformed JSON (unescaped nested quotes). DO NOT
+#                         use until rescue can reconstruct broken JSON.
+# Empirically verified via /api/chat probes on 2026-04-23.
+DEFAULT_MODEL = os.environ.get("CLAW_MODEL", "qwen2.5-coder:7b")
 DEFAULT_VISION_MODEL = os.environ.get("CLAW_VISION_MODEL", "llama3.2-vision:11b")
 MAX_ITERATIONS = 128
 TOOL_OUTPUT_LIMIT = 12000
@@ -74,8 +80,6 @@ SMALL_MODEL = os.environ.get("CLAW_SMALL_MODEL", "llama3.2:1b")  # tiny local mo
 SESSIONS_DIR = Path.home() / ".claw" / "sessions"
 SNAPSHOTS_DIR = Path.home() / ".claw" / "snapshots"
 
-# Inner monologue & reflection
-THINKING_ENABLED = os.environ.get("CLAW_THINKING", "1") != "0"
 REFLECTION_ENABLED = os.environ.get("CLAW_REFLECTION", "1") != "0"
 QUALITY_GATE_ENABLED = os.environ.get("CLAW_QUALITY_GATE", "1") != "0"
 REFLECTION_AFTER_N = 2        # reflect after every N tool rounds
@@ -86,6 +90,16 @@ WIRING_ENABLED = os.environ.get("CLAW_WIRING", "1") != "0"
 # Multi-provider support. Default is local Ollama — cloud providers are
 # opt-in via CLAW_PROVIDER=openrouter|openai|anthropic|dashscope.
 PROVIDER = os.environ.get("CLAW_PROVIDER", "ollama")
+
+# Inner monologue.
+# On local (Ollama) providers, <think> blocks add 30–120s per turn on consumer
+# hardware with marginal quality benefit. Default OFF for local, ON for cloud.
+# Explicit CLAW_THINKING=1 forces it on, CLAW_THINKING=0 forces it off.
+_THINKING_ENV = os.environ.get("CLAW_THINKING")
+if _THINKING_ENV is None:
+    THINKING_ENABLED = PROVIDER.lower() != "ollama"
+else:
+    THINKING_ENABLED = _THINKING_ENV != "0"
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -13756,6 +13770,31 @@ def parse_at_references(text):
 
 TOOL_NAMES = set(TOOL_HANDLERS.keys())
 
+def _loads_lenient(s):
+    """
+    Parse a JSON-ish object emitted by weak models.
+    Handles: strict JSON, Python single-quoted strings, trailing commas.
+    Returns dict or None. Never executes code (ast.literal_eval is safe).
+    """
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        pass
+    # Strip trailing commas before } or ] and retry json
+    try:
+        return json.loads(re.sub(r',\s*([}\]])', r'\1', s))
+    except json.JSONDecodeError:
+        pass
+    # Python-dict syntax (single quotes, mixed quotes). ast.literal_eval is
+    # safe: only literals, no function calls or attribute access.
+    try:
+        import ast
+        obj = ast.literal_eval(s)
+        return obj if isinstance(obj, dict) else None
+    except (ValueError, SyntaxError, MemoryError, TypeError):
+        return None
+
+
 def rescue_tool_calls_from_text(text):
     """
     Some local models output tool calls as JSON in text instead of using
@@ -13773,20 +13812,17 @@ def rescue_tool_calls_from_text(text):
     code_blocks = re.findall(r'```(?:json)?\s*\n(.*?)```', text, re.DOTALL)
     for block in code_blocks:
         block = block.strip()
-        try:
-            obj = json.loads(block)
-            if isinstance(obj, dict) and "name" in obj and "arguments" in obj:
-                name = obj["name"]
-                args = obj["arguments"]
-                if name in TOOL_NAMES:
-                    rescued.append({"function": {"name": name, "arguments": args}})
-                    # remove the entire code block from the text
-                    cleaned = re.sub(
-                        r'```(?:json)?\s*\n' + re.escape(block).replace(r'\ ', r'\s*') + r'\s*```',
-                        '', cleaned, count=1
-                    )
-        except (json.JSONDecodeError, KeyError, TypeError):
-            continue
+        obj = _loads_lenient(block)
+        if isinstance(obj, dict) and "name" in obj and "arguments" in obj:
+            name = obj["name"]
+            args = obj["arguments"]
+            if name in TOOL_NAMES:
+                rescued.append({"function": {"name": name, "arguments": args}})
+                # remove the entire code block from the text
+                cleaned = re.sub(
+                    r'```(?:json)?\s*\n' + re.escape(block).replace(r'\ ', r'\s*') + r'\s*```',
+                    '', cleaned, count=1
+                )
 
     # if code block extraction didn't work, try to remove the block markers
     # and parse the biggest JSON object we can find
@@ -13809,15 +13845,9 @@ def rescue_tool_calls_from_text(text):
                         break
             if end > start:
                 candidate = stripped[start:end]
-                try:
-                    obj = json.loads(candidate)
-                except json.JSONDecodeError:
-                    # Fallback: strip trailing commas before } or ] and retry
-                    try:
-                        cleaned_candidate = re.sub(r',\s*([}\]])', r'\1', candidate)
-                        obj = json.loads(cleaned_candidate)
-                    except (json.JSONDecodeError, ValueError):
-                        continue
+                obj = _loads_lenient(candidate)
+                if obj is None:
+                    continue
                 try:
                     if isinstance(obj, dict) and "name" in obj and "arguments" in obj:
                         name = obj["name"]
@@ -15140,8 +15170,17 @@ def run_agent_turn(messages, model, use_tools=True):
             has_file_content = bool(re.search(r'```(?:json|typescript|tsx|jsx|javascript|python|css|html)\n', content))
             # Detect "Here's the X file:" pattern
             has_heres_file = bool(re.search(r"(?:here'?s|this is|create)\s+(?:the|a|your)\s+[`'\"]?\w+\.\w+", content, re.IGNORECASE))
-            # Detect "I'll create..." without tool calls (planning without doing)
-            has_plan_text = bool(re.search(r"(?:i'?ll|let me|i will|i need to)\s+(?:create|write|set up|start|build|make)", content, re.IGNORECASE))
+            # Detect narration without tool calls (planning/describing without doing).
+            # Expanded to catch: "I'll X", "Let me X", "Once Y, I'll X", "after X",
+            # and more action verbs ("count", "read", "fix", "check", "run", ...).
+            has_plan_text = bool(re.search(
+                r"(?:i'?ll|i will|let me|i need to|i'?m going to|i'?ll now|"
+                r"once (?:it'?s|that'?s|i'?ve)|after (?:i|reading|that))\s+"
+                r"(?:create|write|set up|start|build|make|count|read|fix|check|"
+                r"run|modify|update|edit|search|find|call|use|do|handle|analyze|"
+                r"implement|add|apply|replace)",
+                content, re.IGNORECASE
+            ))
             if has_code_blocks or has_command_instructions or has_file_content or has_heres_file:
                 messages.append({"role": "assistant", "content": content})
                 _inject_nudge(
@@ -15151,13 +15190,15 @@ def run_agent_turn(messages, model, use_tools=True):
                     "Create the NEXT file now using write_file. No more text — just tool calls.]"
                 )
                 continue
-            # Anti-plan-loop: if model keeps saying "I'll create..." without doing it
-            if has_plan_text and not has_code_blocks and iterations > 2:
+            # Anti-plan-loop: fire as soon as the model narrates without a tool
+            # call, even on iteration 1. Previously gated by iterations>2, which
+            # let weak models chatter for the first two turns and then give up.
+            if has_plan_text and not has_code_blocks:
                 messages.append({"role": "assistant", "content": content})
                 _inject_nudge(
                     "[SYSTEM: You're describing what you'll do instead of DOING it. "
-                    "STOP PLANNING. Call write_file RIGHT NOW to create the next file. "
-                    "No more explanations — just tool calls.]"
+                    "STOP PLANNING. Call the appropriate tool RIGHT NOW — write_file, "
+                    "edit_file, read_file, or bash. No more prose — just tool calls.]"
                 )
                 continue
 

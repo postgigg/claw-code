@@ -13810,7 +13810,9 @@ def rescue_tool_calls_from_text(text):
 
     # Pre-process: local models sometimes use backticks instead of quotes
     # for string values (e.g. "content": `code here`). Convert to valid JSON.
-    text = re.sub(r'`([^`]*)`', lambda m: json.dumps(m.group(1)), text)
+    # Scoped to SINGLE backticks not adjacent to other backticks — otherwise
+    # we'd mangle ```json``` fence delimiters in strategy 1's input.
+    text = re.sub(r'(?<!`)`([^`\n]*)`(?!`)', lambda m: json.dumps(m.group(1)), text)
 
     # strategy 1: extract JSON from ```json ... ``` blocks
     code_blocks = re.findall(r'```(?:json)?\s*\n(.*?)```', text, re.DOTALL)
@@ -13848,22 +13850,30 @@ def rescue_tool_calls_from_text(text):
                     if depth == 0:
                         end = i + 1
                         break
+            # Truncated tool calls: weak models sometimes emit a {... that
+            # never closes. If depth never reached 0 but we have a "name" key,
+            # try auto-appending the missing closing braces.
+            candidate = None
             if end > start:
                 candidate = stripped[start:end]
-                obj = _loads_lenient(candidate)
-                if obj is None:
-                    continue
-                try:
-                    # Accept either "arguments" (OpenAI standard) or "parameters"
-                    # (some Llama-family models emit this variant).
-                    if isinstance(obj, dict) and "name" in obj and ("arguments" in obj or "parameters" in obj):
-                        name = obj["name"]
-                        args = obj.get("arguments", obj.get("parameters"))
-                        if name in TOOL_NAMES:
-                            rescued.append({"function": {"name": name, "arguments": args}})
-                            break
-                except (KeyError, TypeError):
-                    continue
+            elif depth > 0 and '"name"' in stripped[start:]:
+                candidate = stripped[start:] + ('}' * depth)
+            if candidate is None:
+                continue
+            obj = _loads_lenient(candidate)
+            if obj is None:
+                continue
+            try:
+                # Accept either "arguments" (OpenAI standard) or "parameters"
+                # (some Llama-family models emit this variant).
+                if isinstance(obj, dict) and "name" in obj and ("arguments" in obj or "parameters" in obj):
+                    name = obj["name"]
+                    args = obj.get("arguments", obj.get("parameters"))
+                    if name in TOOL_NAMES:
+                        rescued.append({"function": {"name": name, "arguments": args}})
+                        break
+            except (KeyError, TypeError):
+                continue
 
     if rescued:
         # clean out the JSON blocks from visible text

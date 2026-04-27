@@ -76,7 +76,7 @@ OLLAMA_STREAM_TIMEOUT = int(os.environ.get("CLAW_TIMEOUT", "1800"))  # 30 min de
 OLLAMA_SYNC_TIMEOUT = int(os.environ.get("CLAW_TIMEOUT", "1800"))    # 30 min default
 CWD = os.getcwd()
 SCRIPT_DIR = Path(__file__).resolve().parent
-SMALL_MODEL = os.environ.get("CLAW_SMALL_MODEL", "llama3.2:1b")  # tiny local model for read-only tool summarization
+SMALL_MODEL = os.environ.get("CLAW_SMALL_MODEL", "qwen2.5-coder:3b")  # small coder for read-only tool summarization. 1B class (llama3.2:1b) was too weak to tool-call; 3B emits valid tool-call JSON as text (rescue catches it).
 SESSIONS_DIR = Path.home() / ".claw" / "sessions"
 SNAPSHOTS_DIR = Path.home() / ".claw" / "snapshots"
 
@@ -13804,6 +13804,10 @@ def rescue_tool_calls_from_text(text):
     rescued = []
     cleaned = text
 
+    # Strip Llama/Qwen-family chat-template special tokens that some models
+    # leak into output: <|python_tag|>, <|tool_call|>, <|im_start|>, etc.
+    text = re.sub(r'<\|[^|]*\|>', '', text)
+
     # Pre-process: local models sometimes use backticks instead of quotes
     # for string values (e.g. "content": `code here`). Convert to valid JSON.
     text = re.sub(r'`([^`]*)`', lambda m: json.dumps(m.group(1)), text)
@@ -13813,9 +13817,10 @@ def rescue_tool_calls_from_text(text):
     for block in code_blocks:
         block = block.strip()
         obj = _loads_lenient(block)
-        if isinstance(obj, dict) and "name" in obj and "arguments" in obj:
+        # Some models (Llama-family) emit "parameters" instead of "arguments".
+        if isinstance(obj, dict) and "name" in obj and ("arguments" in obj or "parameters" in obj):
             name = obj["name"]
-            args = obj["arguments"]
+            args = obj.get("arguments", obj.get("parameters"))
             if name in TOOL_NAMES:
                 rescued.append({"function": {"name": name, "arguments": args}})
                 # remove the entire code block from the text
@@ -13849,9 +13854,11 @@ def rescue_tool_calls_from_text(text):
                 if obj is None:
                     continue
                 try:
-                    if isinstance(obj, dict) and "name" in obj and "arguments" in obj:
+                    # Accept either "arguments" (OpenAI standard) or "parameters"
+                    # (some Llama-family models emit this variant).
+                    if isinstance(obj, dict) and "name" in obj and ("arguments" in obj or "parameters" in obj):
                         name = obj["name"]
-                        args = obj["arguments"]
+                        args = obj.get("arguments", obj.get("parameters"))
                         if name in TOOL_NAMES:
                             rescued.append({"function": {"name": name, "arguments": args}})
                             break

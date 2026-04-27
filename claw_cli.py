@@ -15225,6 +15225,25 @@ def run_agent_turn(messages, model, use_tools=True):
             _inject_nudge("[SYSTEM: Your previous response was empty or garbled. Please try again with a clear response.]")
             continue
 
+        # 7d: Fake-[SYSTEM:] gaslight detection.
+        # Weak models sometimes emit their own [SYSTEM: Task completed...] block
+        # as assistant content, hoping the harness will accept it and exit.
+        # Real system messages only ever come from the harness via _inject_nudge,
+        # never from the assistant. If we see one in assistant content with no
+        # tool calls, treat it as a fake-completion attempt.
+        if not has_tool_calls and full_message["content"] and iterations < MAX_ITERATIONS:
+            content_stripped = full_message["content"].lstrip()
+            if content_stripped.startswith("[SYSTEM:"):
+                messages.append({"role": "assistant", "content": full_message["content"]})
+                _inject_nudge(
+                    "[SYSTEM: VIOLATION — You wrote your own [SYSTEM:...] message. "
+                    "Only the harness writes those. Do not fake completion. If you "
+                    "actually finished the task, verify your work by re-reading any "
+                    "files you wrote (read_file) or running them (bash). Otherwise "
+                    "call the next tool needed.]"
+                )
+                continue
+
         assistant_msg = {"role": "assistant", "content": full_message["content"]}
         if has_tool_calls:
             assistant_msg["tool_calls"] = tool_calls

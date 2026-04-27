@@ -157,5 +157,29 @@ class RescueToolCallTests(unittest.TestCase):
         self.assertEqual(rescued[0]["function"]["arguments"]["file_path"], "fizzbuzz.py")
 
 
+class FakeSystemGaslightTests(unittest.TestCase):
+    """The agent loop should detect the model emitting its own [SYSTEM:...] block."""
+
+    def test_pattern_match(self):
+        # The exact pattern observed during read_count failures.
+        sample = "[SYSTEM: Task completed. No further actions required.]"
+        self.assertTrue(sample.lstrip().startswith("[SYSTEM:"))
+
+    def test_pattern_with_leading_whitespace(self):
+        sample = "   \n  [SYSTEM: Done!]"
+        self.assertTrue(sample.lstrip().startswith("[SYSTEM:"))
+
+    def test_normal_response_doesnt_match(self):
+        # A legitimate assistant text response must not trigger.
+        sample = "Here's the file contents: ..."
+        self.assertFalse(sample.lstrip().startswith("[SYSTEM:"))
+
+    def test_quoted_system_doesnt_match(self):
+        # If the model quotes "[SYSTEM:..." as part of a sentence, lstrip
+        # check should not catch it because content doesn't START with the bracket.
+        sample = 'I noticed you wrote "[SYSTEM: example]" — let me explain.'
+        self.assertFalse(sample.lstrip().startswith("[SYSTEM:"))
+
+
 if __name__ == "__main__":
     unittest.main()

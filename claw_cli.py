@@ -10712,10 +10712,98 @@ def tool_scaffold_project(args):
 TOOL_HANDLERS["scaffold_project"] = tool_scaffold_project
 
 
+# Required-arg contract for each tool. Validated BEFORE the handler runs so
+# weak models get a precise error pointing at the missing/wrong key, instead
+# of a cryptic mid-execution traceback. Optional args aren't listed.
+_TOOL_REQUIRED_ARGS = {
+    "bash": ("command",),
+    "read_file": ("file_path",),
+    "write_file": ("file_path", "content"),
+    "edit_file": ("file_path", "old_string", "new_string"),
+    "glob_search": ("pattern",),
+    "grep_search": ("pattern",),
+    "ask_user": ("question",),
+    "memory_save": ("key", "value"),
+    "memory_search": ("query",),
+    "web_fetch": ("url",),
+    "web_search": ("query",),
+}
+
+# Common arg-name swaps weak models make. Map wrong → right so we can point
+# the model at the fix instead of saying "missing required arg".
+_TOOL_ARG_ALIASES = {
+    "write_file": {
+        "new_string": "content",   # edit_file's param leaked in
+        "text": "content",
+        "body": "content",
+        "data": "content",
+        "path": "file_path",
+        "filename": "file_path",
+        "filepath": "file_path",
+    },
+    "edit_file": {
+        "content": None,           # not valid for edit_file
+        "path": "file_path",
+        "filename": "file_path",
+        "filepath": "file_path",
+        "search": "old_string",
+        "replace": "new_string",
+        "find": "old_string",
+        "replacement": "new_string",
+    },
+    "read_file": {"path": "file_path", "filename": "file_path", "filepath": "file_path"},
+    "bash": {"cmd": "command", "shell": "command"},
+    "glob_search": {"glob": "pattern"},
+    "grep_search": {"regex": "pattern", "query": "pattern"},
+}
+
+
+def _validate_tool_args(name, args):
+    """
+    Return None if args satisfy the required-arg contract, else a short
+    error string the model can act on directly.
+    """
+    required = _TOOL_REQUIRED_ARGS.get(name)
+    if required is None:
+        return None  # tool not contracted (db_schema, env_manage, scaffold, ...)
+
+    aliases = _TOOL_ARG_ALIASES.get(name, {})
+    # If the model used an alias, point them at the right key.
+    for wrong_key, right_key in aliases.items():
+        if wrong_key in args and (right_key is None or right_key not in args):
+            if right_key is None:
+                return (
+                    f"Error: tool '{name}' does not accept '{wrong_key}'. "
+                    f"Required arguments: {', '.join(required)}."
+                )
+            return (
+                f"Error: tool '{name}' got '{wrong_key}', expected '{right_key}'. "
+                f"Re-emit the call with key '{right_key}'."
+            )
+
+    missing = [k for k in required if k not in args or args[k] is None or args[k] == ""]
+    if missing:
+        return (
+            f"Error: tool '{name}' is missing required argument(s): {', '.join(missing)}. "
+            f"Required: {', '.join(required)}. Got: {', '.join(args.keys()) or '(none)'}."
+        )
+    return None
+
+
 def execute_tool(name, args):
     handler = TOOL_HANDLERS.get(name)
     if not handler:
         return f"Error: unknown tool '{name}'"
+
+    # --- ARG SHAPE VALIDATOR ---
+    # Catch the common malformed-call patterns we've observed from weak local
+    # models BEFORE the tool runs. Returning a structured error costs one
+    # iteration; letting the tool fail mid-execution can cost two or three.
+    if not isinstance(args, dict):
+        return f"Error: tool '{name}' arguments must be a JSON object, got {type(args).__name__}"
+    err = _validate_tool_args(name, args)
+    if err:
+        return err
     try:
         # --- UNDO SNAPSHOT ---
         _snapshot_for_undo(name, args)
@@ -12695,6 +12783,14 @@ def _build_slim_system_prompt():
         - NEVER ask the user to copy-paste anything. YOU do the work.
         - If you catch yourself writing a code block or command in text: STOP. Delete it. Call the tool instead.
         - You are PAID to USE TOOLS, not to give instructions. ACT, don't advise.
+
+        ## STOP WHEN DONE — DO NOT WANDER
+        - The moment your last tool call fulfills the user's specific request, STOP.
+        - Do NOT call ask_user with unrelated cleanup, maintenance, or "should I also..." questions.
+        - Do NOT keep grep_searching, glob_searching, or read_file-ing after the task is complete.
+        - In one-shot mode the user is NOT available — you cannot ask follow-ups, confirmations, or "anything else?" questions.
+        - After your final tool call, output one short status line (≤1 sentence) confirming what you did, then stop.
+        - If you are uncertain whether the task is done, RUN ONE bash check (e.g. `python script.py` or `cat output.txt`) — do not loop on it.
         """)
 
     return prompt
@@ -14860,6 +14956,18 @@ def run_agent_turn(messages, model, use_tools=True):
     reflection_state = _ReflectionState()
     _ramble_nudges = 0  # max 1 nudge per agent turn
 
+    # In one-shot mode, the user can't answer questions. Models sometimes
+    # latch onto ask_user as a stalling tactic post-completion. After this
+    # many consecutive ask_user calls with no other tool in between, force
+    # the loop to exit cleanly.
+    # Originally 2 — caught the Docker-cleanup-question wandering. But on
+    # add_flag the model legitimately needed 2 confusion-recovery questions
+    # before writing the file, and we cut it off too early. 4 is still well
+    # below the 128-iteration cap and catches real runaways while leaving
+    # slack for the model to recover from confusion.
+    _ONE_SHOT_ASK_LIMIT = 4
+    _consecutive_ask_user = 0
+
     # Per-turn token tracking
     _turn_prompt_start = _token_tracker.prompt_tokens
     _turn_comp_start = _token_tracker.completion_tokens
@@ -15472,6 +15580,26 @@ def run_agent_turn(messages, model, use_tools=True):
                 reflection_state.record_tool_result(result)
 
         sys.stdout.write(f"  {C.SUBTLE}···{C.RESET}\n")  # thin separator between tool results and next cycle
+
+        # One-shot ask_user runaway detection.
+        # If model keeps calling ask_user when there's no user, exit cleanly
+        # rather than burn the iteration budget on no-progress questions.
+        if _ONE_SHOT_MODE and tool_calls:
+            round_names = [
+                ((tc.get("function") or {}).get("name") or tc.get("name"))
+                for tc in tool_calls
+            ]
+            if round_names and all(n == "ask_user" for n in round_names):
+                _consecutive_ask_user += 1
+                if _consecutive_ask_user >= _ONE_SHOT_ASK_LIMIT:
+                    print(
+                        f"  {C.WARNING}{BLACK_CIRCLE} Stopped: model invoked "
+                        f"ask_user {_consecutive_ask_user}× in non-interactive mode. "
+                        f"Returning current state.{C.RESET}"
+                    )
+                    return full_message["content"] or ""
+            else:
+                _consecutive_ask_user = 0
 
         # Inject queued auto-install results — append to last tool message to keep flow valid
         if _dep_install_results:

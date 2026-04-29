@@ -10817,6 +10817,15 @@ def execute_tool(name, args):
                     _target = _resolve(filepath)
                     if _target.exists():
                         _existing = _target.read_text(encoding="utf-8")
+                        # Identical content → already done. Treat as a no-op
+                        # success rather than an error, so weak models don't
+                        # loop on "BLOCKED" messages re-writing the same bytes.
+                        # Observed in real-task validation: agent wrote dupfind.py
+                        # correctly, then re-emitted identical content 3+ times
+                        # because each retry came back BLOCKED.
+                        if _existing == content:
+                            print(f"  {C.SUBTLE}{BLACK_CIRCLE} {filepath} already up to date{C.RESET}")
+                            return f"OK: {filepath} already contains the requested content (no change written). Task is done — do not retry this write."
                         if _existing and len(_existing) > 50:
                             # Compute how much actually changed
                             import difflib
@@ -12704,9 +12713,13 @@ def _build_slim_system_prompt():
 
         # File Generation
         - Write COMPLETE, production-quality code. No TODOs, no placeholders, no Lorem ipsum.
-        - Use Tailwind CSS for styling. Dark mode support with dark: variants.
         - Real content everywhere: real brand names, real feature names, real descriptions. NEVER use the project slug as the app name.
         - Every link must point somewhere real. Every button must do something.
+        - Do NOT create files the user did not ask for. No README.md, no LICENSE, no .gitignore unless requested. One-shot user prompts are exact specs, not "scaffold a project around this."
+        - Do NOT create package.json/package-lock.json/tsconfig.json for Python, shell, or single-file projects. Those files belong in Node projects only.
+        - Do NOT add Tailwind, dark mode, or fonts to projects that aren't web frontends. Those rules apply only to React/Next/Vue/Svelte tasks.
+
+        # Node-only rules (apply only when package.json exists or the user asked for a Node/React/Next/Vue/Svelte project)
         - Every package you import MUST be in package.json dependencies. Run `npm install <pkg>` or add it manually.
         - In Next.js: interactive UI (forms, inputs, chat) MUST be in 'use client' components with event handlers. Server components cannot have onChange/onClick.
         - In Next.js: NEVER redirect() a page to its own route — that's an infinite loop. Create the resource then redirect to its URL.
@@ -12715,7 +12728,8 @@ def _build_slim_system_prompt():
 
         # Project Detection
         - package.json → Node project → npm install, npm run dev
-        - requirements.txt → Python → pip install, python app.py
+        - requirements.txt or *.py without package.json → Python project → pip if needed, python file.py
+        - Single .py file the user requested → Python script — DO NOT create package.json, README.md, or any other ancillary file
         - Only .html/.css/.js (no package.json) → STATIC site → open in browser, no npm/pip
 
         # Security
